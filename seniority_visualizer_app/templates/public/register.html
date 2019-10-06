@@ -1,8 +1,19 @@
 
 {% extends "layout.html" %}
 {% block content %}
-<div class="container-narrow">
-  <h1 class="mt-5">Register</h1>
+<div class="container-fluid">
+  <h1 class="mt-5 mb-5">Register</h1>
+    <div class="faq-snippet">
+        <h5>
+            Why do you need my company email?
+        </h5>
+        <p>
+            I only need your company email to verify that you work for the company. Once you confirm
+            that you have access to that email, things like password resets will be handed using the
+            personal email you provide.
+            {# TODO: Describe the verification process to user #}
+        </p>
+    </div>
     <br/>
     <form id="registerForm" class="form form-register" method="POST" action="" role="form">
            {{ form.csrf_token }}
@@ -11,9 +22,14 @@
                 {{form.username(placeholder="Username", class_="form-control")}}
             </div>
             <div class="form-group">
-                {{form.email.label}}
-                {{form.email(placeholder="Email", class_="form-control")}}
-                <small id="emailHelp" class="form-text text-muted">We'll never share your email with anyone else.</small>
+                {{ form.personal_email.label }}
+                {{ form.personal_email(placeholder="Personal Email", class_="form-control") }}
+                <small id="personalEmailHelp" class="form-text text-muted">Used for communications and password resets.</small>
+            </div>
+            <div class="form-group">
+                {{form.company_email.label}}
+                {{form.company_email(placeholder="Company Email", class_="form-control")}}
+                <small id="emailHelp" class="form-text text-muted">Only used for verification purposes.</small>
             </div>
             <div class="form-group">
                 {{form.password.label}}

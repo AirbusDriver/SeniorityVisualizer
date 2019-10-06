@@ -21,7 +21,8 @@ class UserFactory(BaseFactory):
     """User factory."""
 
     username = Sequence(lambda n: "user{0}".format(n))
-    email = Sequence(lambda n: "user{0}@example.com".format(n))
+    personal_email = Sequence(lambda n: "user{0}@example.com".format(n))
+    company_email = Sequence(lambda n: "test.user{0}@jetblue.com".format(n))
     password = PostGenerationMethodCall("set_password", "example")
     active = True
 

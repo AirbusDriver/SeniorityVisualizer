@@ -5,6 +5,7 @@ from wtforms import PasswordField, StringField
 from wtforms.validators import DataRequired, Email, EqualTo, Length
 
 from .models import User
+from .validators import CompanyEmail
 
 
 class RegisterForm(FlaskForm):
@@ -13,8 +14,11 @@ class RegisterForm(FlaskForm):
     username = StringField(
         "Username", validators=[DataRequired(), Length(min=3, max=25)]
     )
-    email = StringField(
-        "Email", validators=[DataRequired(), Email(), Length(min=6, max=40)]
+    company_email = StringField(
+        "Company Email", validators=[DataRequired(), Email(), CompanyEmail()]
+    )
+    personal_email = StringField(
+        "Personal Email", validators=[DataRequired(), Email()]
     )
     password = PasswordField(
         "Password", validators=[DataRequired(), Length(min=6, max=40)]
@@ -38,8 +42,12 @@ class RegisterForm(FlaskForm):
         if user:
             self.username.errors.append("Username already registered")
             return False
-        user = User.query.filter_by(email=self.email.data).first()
+        user = User.query.filter_by(company_email=self.company_email.data).first()
         if user:
-            self.email.errors.append("Email already registered")
+            self.company_email.errors.append("Email already registered")
             return False
+        if User.query.filter_by(personal_email=self.personal_email.data).first():
+            self.personal_email.errors.append("Email already registered")
+            return False
+
         return True

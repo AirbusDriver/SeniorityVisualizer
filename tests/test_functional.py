@@ -78,7 +78,8 @@ class TestRegistering:
         # Fills out the form
         form = res.forms["registerForm"]
         form["username"] = "foobar"
-        form["email"] = "foo@bar.com"
+        form["personal_email"] = "foo@bar.com"
+        form["company_email"] = "person@jetblue.com"
         form["password"] = "secret"
         form["confirm"] = "secret"
         # Submits
@@ -94,7 +95,8 @@ class TestRegistering:
         # Fills out form, but passwords don't match
         form = res.forms["registerForm"]
         form["username"] = "foobar"
-        form["email"] = "foo@bar.com"
+        form["personal_email"] = "foo@bar.com"
+        form["company_email"] = "test@jetblue.com"
         form["password"] = "secret"
         form["confirm"] = "secrets"
         # Submits
@@ -111,10 +113,28 @@ class TestRegistering:
         # Fills out form, but username is already registered
         form = res.forms["registerForm"]
         form["username"] = user.username
-        form["email"] = "foo@bar.com"
+        form["personal_email"] = "foo@bar.com"
+        form["company_email"] = "test@jetblue.com"
         form["password"] = "secret"
         form["confirm"] = "secret"
         # Submits
         res = form.submit()
         # sees error
         assert "Username already registered" in res
+
+    def test_sees_error_if_company_email_invalid(self, user, testapp):
+        user = UserFactory(active=True)
+
+        # Goes to registration page
+        res = testapp.get(url_for("public.register"))
+        # Fills out form with invalid company email
+        form = res.forms["registerForm"]
+        # Submits the form
+        form["username"] = user.username
+        form["company_email"] = "bademail@host.com"
+        form["personal_email"] = "test@example.com"
+        form["password"] = "12345"
+        form["confirm"] = "12345"
+        # Sees error about invalid company email
+        res = form.submit()
+        assert "Email is not a valid company email." in res

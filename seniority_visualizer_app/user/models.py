@@ -37,7 +37,8 @@ class User(UserMixin, SurrogatePK, Model):
 
     __tablename__ = "users"
     username = Column(db.String(80), unique=True, nullable=False)
-    email = Column(db.String(80), unique=True, nullable=False)
+    company_email = Column(db.String(80), unique=True, nullable=False)
+    personal_email = Column(db.String(80), unique=True, nullable=False)
     #: The hashed password
     password = Column(db.LargeBinary(128), nullable=True)
     created_at = Column(db.DateTime, nullable=False, default=dt.datetime.utcnow)
@@ -45,10 +46,19 @@ class User(UserMixin, SurrogatePK, Model):
     last_name = Column(db.String(30), nullable=True)
     active = Column(db.Boolean(), default=False)
     is_admin = Column(db.Boolean(), default=False)
+    # todo: add is_verified feature
 
-    def __init__(self, username, email, password=None, **kwargs):
+    def __init__(
+        self, username, company_email, personal_email, password=None, **kwargs
+    ):
         """Create instance."""
-        db.Model.__init__(self, username=username, email=email, **kwargs)
+        db.Model.__init__(
+            self,
+            username=username,
+            company_email=company_email,
+            personal_email=personal_email,
+            **kwargs
+        )
         if password:
             self.set_password(password)
         else:
