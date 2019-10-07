@@ -46,6 +46,50 @@ class TestUser:
         assert user.active is True
         assert user.check_password("myprecious")
 
+    @pytest.mark.parametrize(
+        "inp_email, query_email",
+        [
+            ("thomas.jefferson@example.com", "thomas.jefferson@example.com"),
+            ("thomas.jefferson@example.com", "Thomas.Jefferson@example.com"),
+        ],
+    )
+    def test_filter_by_email_case_insensitive(self, inp_email, query_email, db):
+        """User email lookups """
+        user = UserFactory(company_email=inp_email)
+
+        user.save()
+        db.session.commit()
+
+        retrieved = User.get_by_email(
+            User.company_email, query_email, case_insensitive=True
+        )
+
+        assert retrieved == user
+
+    @pytest.mark.parametrize(
+        "inp_email, query_email, match",
+        [
+            ("thomas.jefferson@example.com", "thomas.jefferson@example.com", True),
+            ("THOMAS.jefferson@example.com", "thomas.jefferson@example.com", False),
+        ],
+    )
+
+    def test_filter_by_email_case_sensitive(self, inp_email, query_email, match, db):
+        """User email lookups """
+        user = UserFactory(company_email=inp_email)
+
+        user.save()
+        db.session.commit()
+
+        retrieved = User.get_by_email(
+            User.company_email, query_email, case_insensitive=False
+        )
+
+        if match:
+            assert retrieved == user
+        else:
+            assert retrieved is None
+
     def test_check_password(self):
         """Check password."""
         user = User.create(
