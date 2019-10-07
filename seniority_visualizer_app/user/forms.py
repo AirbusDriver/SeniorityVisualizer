@@ -42,11 +42,10 @@ class RegisterForm(FlaskForm):
         if user:
             self.username.errors.append("Username already registered")
             return False
-        user = User.query.filter_by(company_email=self.company_email.data).first()
-        if user:
+        if User.get_by_email(User.company_email, self.company_email.data, case_insensitive=True):
             self.company_email.errors.append("Email already registered")
             return False
-        if User.query.filter_by(personal_email=self.personal_email.data).first():
+        if User.get_by_email(User.personal_email, self.personal_email.data, case_insensitive=True):
             self.personal_email.errors.append("Email already registered")
             return False
 

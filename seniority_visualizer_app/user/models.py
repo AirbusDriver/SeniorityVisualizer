@@ -1,7 +1,9 @@
 # -*- coding: utf-8 -*-
 """User models."""
 import datetime as dt
+from typing import Optional
 
+from sqlalchemy import func
 from flask_login import UserMixin
 
 from seniority_visualizer_app.database import (
@@ -76,6 +78,24 @@ class User(UserMixin, SurrogatePK, Model):
     def full_name(self):
         """Full user name."""
         return "{0} {1}".format(self.first_name, self.last_name)
+
+    @classmethod
+    def get_by_email(
+        cls, email_type, query_email: str, case_insensitive=True
+    ) -> Optional["User"]:
+        """
+        Lookup user by email type.
+
+        :param email_type: the actual property, (User.company_email or User.personal_email)
+        :param query_email: email to lookup
+        :param case_insensitive: ignore case on lookup
+        """
+        if case_insensitive:
+            return cls.query.filter(
+                func.lower(email_type) == query_email.lower()
+            ).first()
+        else:
+            return cls.query.filter(email_type == query_email).first()
 
     def __repr__(self):
         """Represent instance as a unique string."""
