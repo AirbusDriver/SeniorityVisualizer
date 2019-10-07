@@ -15,6 +15,7 @@ from seniority_visualizer_app.extensions import (
     login_manager,
     migrate,
     webpack,
+    mail,
 )
 
 
@@ -44,6 +45,7 @@ def register_extensions(app):
     debug_toolbar.init_app(app)
     migrate.init_app(app, db)
     webpack.init_app(app)
+    mail.init_app(app)
     return None
 
 

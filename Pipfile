@@ -31,6 +31,7 @@ Flask-Caching = ">=1.0.0"
 Flask-DebugToolbar = "==0.10.1"
 # Environment variable parsing
 environs = "==6.0.0"
+flask-mail = "*"
 
 [dev-packages]
 # Testing
