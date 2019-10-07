@@ -73,7 +73,6 @@ class TestUser:
             ("THOMAS.jefferson@example.com", "thomas.jefferson@example.com", False),
         ],
     )
-
     def test_filter_by_email_case_sensitive(self, inp_email, query_email, match, db):
         """User email lookups """
         user = UserFactory(company_email=inp_email)
