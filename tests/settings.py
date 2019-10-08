@@ -11,3 +11,10 @@ CACHE_TYPE = "simple"  # Can be "memcached", "redis", etc.
 SQLALCHEMY_TRACK_MODIFICATIONS = False
 WEBPACK_MANIFEST_PATH = "webpack/manifest.json"
 WTF_CSRF_ENABLED = False  # Allows form testing
+
+MAIL_USERNAME = "admin_mail@example.com"
+MAIL_DEFAULT_SENDER = "admin_mail@example.com"
+MAIL_PASSWORD = "1122boogiewoogieave"
+MAIL_SERVER = "localhost"
+MAIL_PORT = "123"
+MAIL_USE_SSL = True

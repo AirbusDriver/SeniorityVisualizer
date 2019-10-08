@@ -1,10 +1,13 @@
 # -*- coding: utf-8 -*-
 """User models."""
 import datetime as dt
-from typing import Optional
+from typing import Optional, Union
 
 from sqlalchemy import func
 from flask_login import UserMixin
+from itsdangerous import TimedJSONWebSignatureSerializer
+from enum import Enum
+
 
 from seniority_visualizer_app.database import (
     Column,
@@ -15,6 +18,7 @@ from seniority_visualizer_app.database import (
     relationship,
 )
 from seniority_visualizer_app.extensions import bcrypt
+from .email import make_email_serializer
 
 
 class Role(SurrogatePK, Model):
@@ -34,13 +38,22 @@ class Role(SurrogatePK, Model):
         return "<Role({name})>".format(name=self.name)
 
 
+class EmailCategories(Enum):
+    COMPANY_EMAIL = "company_email"
+    PERSONAL_EMAIL = "personal_email"
+
+
 class User(UserMixin, SurrogatePK, Model):
     """A user of the app."""
+
+    email_categories = EmailCategories
 
     __tablename__ = "users"
     username = Column(db.String(80), unique=True, nullable=False)
     company_email = Column(db.String(80), unique=True, nullable=False)
     personal_email = Column(db.String(80), unique=True, nullable=False)
+    company_email_confirmed = Column(db.Boolean(), default=False)
+    personal_email_confirmed = Column(db.Boolean(), default=False)
     #: The hashed password
     password = Column(db.LargeBinary(128), nullable=True)
     created_at = Column(db.DateTime, nullable=False, default=dt.datetime.utcnow)
@@ -48,7 +61,6 @@ class User(UserMixin, SurrogatePK, Model):
     last_name = Column(db.String(30), nullable=True)
     active = Column(db.Boolean(), default=False)
     is_admin = Column(db.Boolean(), default=False)
-    # todo: add is_verified feature
 
     def __init__(
         self, username, company_email, personal_email, password=None, **kwargs
@@ -59,7 +71,7 @@ class User(UserMixin, SurrogatePK, Model):
             username=username,
             company_email=company_email,
             personal_email=personal_email,
-            **kwargs
+            **kwargs,
         )
         if password:
             self.set_password(password)
@@ -100,3 +112,61 @@ class User(UserMixin, SurrogatePK, Model):
     def __repr__(self):
         """Represent instance as a unique string."""
         return "<User({username!r})>".format(username=self.username)
+
+    def generate_confirmation_token(
+        self,
+        email_category: EmailCategories,
+        serializer: Optional[TimedJSONWebSignatureSerializer] = None,
+    ) -> bytes:
+
+        if serializer is None:
+            serializer = make_email_serializer()
+
+        email_attribute = email_category.value
+
+        if not self.id:
+            raise RuntimeError("can not generate token for unsaved user")
+
+        payload = {
+            "email": getattr(self, email_attribute),
+            "user_id": self.id,
+            "email_category": email_attribute,
+        }
+        token = serializer.dumps(payload)
+
+        return token
+
+    @classmethod
+    def parse_confirmation_token(
+        cls, token, serializer: Optional[TimedJSONWebSignatureSerializer] = None
+    ) -> Union[dict, bool]:
+
+        if serializer is None:
+            serializer = make_email_serializer()
+
+        try:
+            payload = serializer.loads(token)
+        except Exception as e:
+            print(e)
+            return False
+        else:
+            required_keys = {"user_id", "email_category", "email"}
+            payload_key_set = set(payload.keys())
+            if not payload_key_set.issubset(required_keys):
+                return False
+
+            return payload
+
+    def confirm_email(self, email_attr) -> bool:
+        """
+        Mark the <email_attr>_confirmed as True
+
+        :param email_attr: the name of the email attribute ('company_email' or 'personal_email')
+        :raises AttributeError: if 'email_attr' not a valid email attribute
+        """
+        if email_attr not in [v.value for v in self.email_categories]:
+            raise AttributeError(f"{email_attr} not a valid email category")
+        attr = f"{email_attr}_confirmed"
+        setattr(self, attr, True)
+        self.save()
+        return True

@@ -138,3 +138,31 @@ class TestRegistering:
         # Sees error about invalid company email
         res = form.submit()
         assert "Email is not a valid company email." in res
+
+
+class TestEmailConfirmation:
+    def test_user_created_with_emails_not_confirmed(self, user: User, testapp):
+        assert user
+        assert user.company_email_confirmed == user.personal_email_confirmed == False
+
+        # confirm personal email
+        token = user.generate_confirmation_token(user.email_categories.PERSONAL_EMAIL)
+
+        url = url_for("user.confirm_user", token=token)
+
+        res = testapp.get(url)
+
+        assert res.status_code == 200
+        assert user.personal_email_confirmed
+        assert not user.company_email_confirmed
+
+        # confirm company email
+
+        token = user.generate_confirmation_token(user.email_categories.COMPANY_EMAIL)
+        url = url_for("user.confirm_user", token=token)
+
+        res = testapp.get(url)
+
+        assert res.status_code == 200
+        assert user.personal_email_confirmed
+        assert user.company_email_confirmed
