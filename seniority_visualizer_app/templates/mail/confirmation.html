@@ -1,0 +1,12 @@
+{% extends 'mail/email_template.html' %}
+
+{% block content %}
+    <p class="container">Hello, please take a minute to confirm your email. This token will expire in
+        one hour. </p>
+
+    <a href="{{ confirmation_url }}">Click here to confirm your email.</a>
+    <br><br>
+    <small>If you cannot see the confirmation button, click
+        <a class="confirm-link" href="{{ confirmation_url }}">here</a>
+    </small>
+{% endblock %}

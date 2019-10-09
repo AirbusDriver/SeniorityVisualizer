@@ -1,0 +1,3 @@
+Hello, please take a minute to confirm your email. This token will expire in one hour.
+
+{{ confirmation_url }}

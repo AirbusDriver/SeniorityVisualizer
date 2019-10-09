@@ -136,9 +136,9 @@ class User(UserMixin, SurrogatePK, Model):
 
         return token
 
-    @classmethod
+    @staticmethod
     def parse_confirmation_token(
-        cls, token, serializer: Optional[TimedJSONWebSignatureSerializer] = None
+            token, serializer: Optional[TimedJSONWebSignatureSerializer] = None
     ) -> Union[dict, bool]:
 
         if serializer is None:

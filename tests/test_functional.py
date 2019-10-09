@@ -4,8 +4,10 @@
 See: http://webtest.readthedocs.org/
 """
 from flask import url_for
+from bs4 import BeautifulSoup
 
 from seniority_visualizer_app.user.models import User
+from seniority_visualizer_app.user import email
 
 from .factories import UserFactory
 
@@ -165,4 +167,21 @@ class TestEmailConfirmation:
 
         assert res.status_code == 200
         assert user.personal_email_confirmed
+        assert user.company_email_confirmed
+
+    def test_user_email_confirmed_upon_clicking_email_link(self, user, testapp):
+        assert not user.company_email_confirmed
+
+        from seniority_visualizer_app.user.email import mail
+
+        with mail.record_messages() as outbox:
+
+            link = email.send_confirmation_email(user, User.email_categories.COMPANY_EMAIL)
+
+        res = testapp.get(link)
+
+        soup = BeautifulSoup(res.text, "html.parser")
+
+        assert soup.select("#success-heading")
+
         assert user.company_email_confirmed

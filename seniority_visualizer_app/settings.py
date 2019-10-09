@@ -21,7 +21,7 @@ DEBUG_TB_INTERCEPT_REDIRECTS = False
 CACHE_TYPE = "simple"  # Can be "memcached", "redis", etc.
 SQLALCHEMY_TRACK_MODIFICATIONS = False
 WEBPACK_MANIFEST_PATH = "webpack/manifest.json"
-SERVER_NAME = "localhost"
+SERVER_NAME = env.str("SERVER_NAME", default="0.0.0.0:5000")
 
 MAIL_USERNAME = env.str("MAIL_USERNAME")
 MAIL_DEFAULT_SENDER = env.str("MAIL_DEFAULT_SENDER", default=None)

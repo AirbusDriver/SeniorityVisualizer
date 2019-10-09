@@ -35,6 +35,6 @@ def confirm_user(token):
     except Exception as exc:
         print(exc)
     else:
-        return make_response("confirmed")
+        return render_template("users/confirmed_email.html")
 
     return make_response("not confirmed")
