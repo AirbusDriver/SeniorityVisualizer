@@ -1,17 +1,18 @@
 
 {% extends "layout.html" %}
 {% block content %}
-<div class="container-fluid">
+<div class="container">
   <h1 class="mt-5 mb-5">Register</h1>
     <div class="faq-snippet">
-        <h5>
+        <h4>
             Why do you need my company email?
-        </h5>
+        </h4>
         <p>
-            I only need your company email to verify that you work for the company. Once you confirm
-            that you have access to that email, things like password resets will be handed using the
-            personal email you provide.
-            {# TODO: Describe the verification process to user #}
+            The only way that I can ensure that you are a valid employee here is to send a unique
+            confirmation token to the company email that you have access to. Once you click that
+            link in the email, it will verify that you are in fact someone who works here. From that
+            point on, things like communications and password management will be handled using your
+            personal email.
         </p>
     </div>
     <br/>

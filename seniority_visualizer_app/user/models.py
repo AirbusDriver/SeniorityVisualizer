@@ -5,7 +5,7 @@ from typing import Optional, Union
 
 from sqlalchemy import func
 from flask_login import UserMixin
-from itsdangerous import TimedJSONWebSignatureSerializer
+from itsdangerous import TimedJSONWebSignatureSerializer, SignatureExpired
 from enum import Enum
 
 
@@ -146,6 +146,8 @@ class User(UserMixin, SurrogatePK, Model):
 
         try:
             payload = serializer.loads(token)
+        except SignatureExpired:
+            raise
         except Exception as e:
             print(e)
             return False

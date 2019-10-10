@@ -1,0 +1,28 @@
+{% extends "layout.html" %}
+
+{% block page_title %}EMAIL CONFIRMATION FAILURE!{% endblock %}
+
+{% block content %}
+
+    <div class="container mb-4">
+
+        {% if expired %}
+            <h1>
+                Your token expired!
+            </h1>
+            <br>
+            <p>Please sign back in and visit your user information page to have a new email
+                confirmation link sent to you. </p>
+        {% else %}
+            <h1>
+                Confirmation Failure!
+            </h1>
+        {% endif %}
+        <p>
+            If you believe you got to your token within the verification window, then an internal
+            issue occurred. Please send me an email about it and I'll get to it as soon as I can! The
+            mailing link is in the footer!
+        </p>
+    </div>
+
+{% endblock %}

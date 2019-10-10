@@ -15,6 +15,7 @@ from seniority_visualizer_app.extensions import login_manager
 from seniority_visualizer_app.public.forms import LoginForm
 from seniority_visualizer_app.user.forms import RegisterForm
 from seniority_visualizer_app.user.models import User
+from seniority_visualizer_app.user.email import send_confirmation_email
 from seniority_visualizer_app.utils import flash_errors
 
 blueprint = Blueprint("public", __name__, static_folder="../static")
@@ -57,14 +58,26 @@ def register():
     """Register new user."""
     form = RegisterForm(request.form)
     if form.validate_on_submit():
-        User.create(
+        user = User.create(
             username=form.username.data,
             company_email=form.company_email.data,
             personal_email=form.personal_email.data,
             password=form.password.data,
             active=True,
         )
+        current_app.logger.info(
+            f"NEW USER -> {form.username.data}"
+        )
+
+        send_confirmation_email(
+            user, User.email_categories.PERSONAL_EMAIL
+        )
+        send_confirmation_email(
+            user, User.email_categories.COMPANY_EMAIL
+        )
+
         flash("Thank you for registering. You can now log in.", "success")
+        flash("You must confirm both emails within the next hour!")
         return redirect(url_for("public.home"))
     else:
         flash_errors(form)

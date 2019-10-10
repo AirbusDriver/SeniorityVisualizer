@@ -52,3 +52,13 @@ def send_confirmation_email(user: "User", email_category):
     # send message in background thread
     send_email(msg)
     return url
+
+
+def _prep_email(s):
+    """Tokenize email for comparison"""
+    return s.lower().strip()
+
+
+def compare_emails(email_1, email_2):
+    """Return True if email_1 and email_2 are effectively equal"""
+    return _prep_email(email_1) == _prep_email(email_2)

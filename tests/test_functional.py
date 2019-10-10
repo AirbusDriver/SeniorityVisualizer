@@ -4,7 +4,7 @@
 See: http://webtest.readthedocs.org/
 """
 from flask import url_for
-from bs4 import BeautifulSoup
+from unittest import mock
 
 from seniority_visualizer_app.user.models import User
 from seniority_visualizer_app.user import email
@@ -142,7 +142,7 @@ class TestRegistering:
         assert "Email is not a valid company email." in res
 
 
-class TestEmailConfirmation:
+class TestRegistration:
     def test_user_created_with_emails_not_confirmed(self, user: User, testapp):
         assert user
         assert user.company_email_confirmed == user.personal_email_confirmed == False
@@ -152,36 +152,50 @@ class TestEmailConfirmation:
 
         url = url_for("user.confirm_user", token=token)
 
-        res = testapp.get(url)
+        res = testapp.get(url).follow()
 
-        assert res.status_code == 200
+        assert res.status_int == 200
         assert user.personal_email_confirmed
         assert not user.company_email_confirmed
+
+        res.mustcontain("Thank you for confirming you email!")
 
         # confirm company email
 
         token = user.generate_confirmation_token(user.email_categories.COMPANY_EMAIL)
         url = url_for("user.confirm_user", token=token)
 
-        res = testapp.get(url)
+        res = testapp.get(url).follow()
+
+        res.mustcontain("Thank you for confirming you email!")
 
         assert res.status_code == 200
         assert user.personal_email_confirmed
         assert user.company_email_confirmed
 
-    def test_user_email_confirmed_upon_clicking_email_link(self, user, testapp):
-        assert not user.company_email_confirmed
+    def test_email_sent_alert_shown(self, db, testapp):
+        form = testapp.get(url_for("public.register")).forms["registerForm"]
 
-        from seniority_visualizer_app.user.email import mail
+        form["username"] = "TestUser"
+        form["company_email"] = "test.user@jetblue.com"
+        form["personal_email"] = "testUser@example.com"
+        form["password"] = "password123"
+        form["confirm"] = "password123"
 
-        with mail.record_messages() as outbox:
+        res = form.submit().follow()
 
-            link = email.send_confirmation_email(user, User.email_categories.COMPANY_EMAIL)
+        res.mustcontain("You must confirm both emails within the next hour!")
 
-        res = testapp.get(link)
+    @mock.patch("seniority_visualizer_app.public.views.send_confirmation_email")
+    def test_email_sent_on_signup(self, patch_conf_email, db, testapp):
+        form = testapp.get(url_for("public.register")).forms["registerForm"]
 
-        soup = BeautifulSoup(res.text, "html.parser")
+        form["username"] = "TestUser"
+        form["company_email"] = "test.user@jetblue.com"
+        form["personal_email"] = "testUser@example.com"
+        form["password"] = "password123"
+        form["confirm"] = "password123"
 
-        assert soup.select("#success-heading")
+        res = form.submit().follow()
 
-        assert user.company_email_confirmed
+        assert patch_conf_email.call_count == 2
