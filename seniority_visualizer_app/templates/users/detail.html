@@ -1,0 +1,75 @@
+{% extends "layout.html" %}
+
+{% block content %}
+    <div class="container">
+        <form id="userDetailsForm" class="border border-light p-5" method="POST">
+            {{ form.csrf_token }}
+            <p class="h4 mb-4 text-center">Edit Details</p>
+            <div class="input-group mb-3">
+                <div class="input-group-prepend">
+                    <span class="input-group-text">Username</span>
+                </div>
+                {{ form.username(class_="form-control", disabled=True) }}
+            </div>
+            <div class="input-group mb-3">
+                <div class="input-group-prepend">
+                    <span class="input-group-text">Company Email</span>
+                </div>
+                {{ form.company_email(class_="form-control", disabled=True) }}
+            </div>
+            <div class="input-group mb-3">
+                <div class="input-group-prepend">
+                    <span class="input-group-text">Personal Email</span>
+                </div>
+                {{ form.personal_email(class_="form-control", disabled=True) }}
+            </div>
+            <button class="btn-primary btn-block" type="submit">Submit</button>
+            <button class="btn-block btn-info" id="uiEditButton" type="button">Edit</button>
+        </form>
+    </div>
+
+{% endblock %}
+
+{% block js %}
+
+    <script type="text/javascript">
+
+        const form = document.querySelector('#userDetailsForm');
+        const uiEditButton = document.querySelector('#uiEditButton');
+        const fields = form.querySelectorAll('.form-control');
+
+        uiEditButton.addEventListener('mouseup', handleEditButton);
+
+        function handleEditButton(event) {
+            if (uiEditButton.textContent === 'Edit') {
+                enableForm(event);
+            } else if (uiEditButton.textContent === 'Cancel') {
+                disableForm(event);
+            }
+        }
+
+        function disableForm(event) {
+            console.log(`disableForm from ${event.target.id}`);
+            fields.forEach((field) => {
+                field.disabled = true;
+            });
+
+            uiEditButton.textContent = 'Edit';
+
+            window.location.replace(window.location);
+        }
+
+        function enableForm(event) {
+            console.log(`enableForm from ${event.target.id}`);
+
+            fields.forEach((field) => {
+                field.disabled = false;
+            });
+
+            uiEditButton.textContent = 'Cancel';
+
+            event.preventDefault();
+        }
+    </script>
+
+{% endblock %}
