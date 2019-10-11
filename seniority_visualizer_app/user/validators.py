@@ -4,7 +4,6 @@ import enum
 from wtforms.validators import Email
 from wtforms.validators import ValidationError
 
-
 EMPLOYEE_NUMBER_EMAIL_PATTERN_PREFIX = r"^\w{2,3}\d{1,5}"
 EMPLOYEE_NAME_EMAIL_PATTERN_PREFIX = r"^\S+"
 HOST = "@jetblue.com$"
@@ -46,3 +45,20 @@ class CompanyEmail(Email):
                 return False
         except TypeError:
             return False
+
+
+class UniqueField:
+    def __init__(self, model, attr, message=None):
+        self.message = message or "Already registered"
+        self.model = model
+        self.attr = attr
+
+    def __call__(self, form, field):
+        data = field.data
+
+        query = {self.attr: data}
+
+        if self.model.query.filter_by(**query).first():
+            raise ValidationError(self.message)
+
+        return True
