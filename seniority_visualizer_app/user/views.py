@@ -18,7 +18,7 @@ blueprint = Blueprint("user", __name__, url_prefix="/users", static_folder="../s
 
 from .models import User
 from .email import compare_emails
-from .forms import UserDetailsForm
+from .forms import UserDetailsForm, ChangePasswordForm
 from seniority_visualizer_app.utils import flash_errors
 
 
@@ -100,3 +100,36 @@ def details(user_id):
 
     flash_errors(form)
     return render_template("users/detail.html", form=form)
+
+
+@blueprint.route("/change_password", methods=["GET", "POST"])
+@login_required
+def change_password():
+    """Change current user password"""
+
+    user: User = current_user
+
+    form = ChangePasswordForm()
+
+    if form.validate_on_submit():
+        if user.check_password(form.old_password.data):
+            new_password = form.new_password.data
+
+            assert (
+                form.confirm_new_password.data == new_password
+            ), "somehow the change password fields do not match"
+
+            user.set_password(new_password)
+            user.save(commit=True)
+            flash(
+                "Your password has been changed. You may log back in with your new password now.",
+                "success"
+            )
+            current_app.logger.info(
+                f"{current_user} changed password"
+            )
+        else:
+            flash("Incorrect password!", "warning")
+
+    flash_errors(form)
+    return render_template("users/change_password.html", form=form)

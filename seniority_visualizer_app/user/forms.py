@@ -2,7 +2,7 @@
 """User forms."""
 from flask_wtf import FlaskForm, Form
 from wtforms import PasswordField, StringField, Field, ValidationError
-from wtforms.validators import DataRequired, Email, EqualTo, Length
+from wtforms.validators import DataRequired, Email, EqualTo, Length, InputRequired
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy import func
 from flask import current_app
@@ -99,3 +99,19 @@ class UserDetailsForm(FlaskForm):
             current_app.logger.debug("CHANGE DETECTED")
             if User.query.filter(func.lower(User.personal_email) == lower_data).first():
                 raise ValidationError(f"{field.data} already registered!")
+
+
+class ChangePasswordForm(FlaskForm):
+    old_password = PasswordField("Current Password", validators=[InputRequired()])
+
+    new_password = PasswordField(
+        "New Password", validators=[InputRequired(), Length(6, 24)]
+    )
+
+    confirm_new_password = PasswordField(
+        "Confirm New Password",
+        validators=[
+            InputRequired(),
+            EqualTo("new_password", message="Passwords must match!"),
+        ],
+    )
