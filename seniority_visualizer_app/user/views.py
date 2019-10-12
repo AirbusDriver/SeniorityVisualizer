@@ -70,7 +70,7 @@ def confirm_user(token):
 def details(user_id):
     user: User = User.get_by_id(user_id)
 
-    if not user or (current_user.id == user_id and not current_user.is_admin):
+    if not user or (current_user.id != user_id and not current_user.is_admin):
         return render_template("401.html")
 
     form = UserDetailsForm(
