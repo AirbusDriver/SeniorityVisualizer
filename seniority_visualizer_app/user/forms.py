@@ -114,7 +114,9 @@ class PasswordResetForm(FlaskForm):
     )
 
 
-class ChangePasswordForm(FlaskForm):
-    personal_email = StringField(
-        "Pesonal Email", validators=[InputRequired(), Email()]
-    )
+class ChangePasswordForm(PasswordResetForm):
+    old_password = PasswordField("Old Password", validators=[InputRequired()])
+
+
+class SendPasswordResetForm(FlaskForm):
+    personal_email = StringField("Pesonal Email", validators=[InputRequired(), Email()])

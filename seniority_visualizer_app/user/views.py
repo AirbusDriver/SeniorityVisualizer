@@ -22,7 +22,7 @@ blueprint = Blueprint("user", __name__, url_prefix="/users", static_folder="../s
 
 from .models import User
 from .email import compare_emails, send_password_reset_token
-from .forms import UserDetailsForm, ChangePasswordForm, PasswordResetForm
+from .forms import UserDetailsForm, SendPasswordResetForm, ChangePasswordForm, PasswordResetForm
 from seniority_visualizer_app.utils import flash_errors
 
 PASSWORD_RESET_MAX_AGE = 3600
@@ -147,7 +147,7 @@ def change_password():
             user.set_password(new_password)
             user.save(commit=True)
             flash(
-                "Your password has been changed. You may log back in with your new password now.",
+                "Your password has been changed. You may log in with your new password now.",
                 "success",
             )
             current_app.logger.info(f"{current_user} changed password")
@@ -207,7 +207,7 @@ def reset_password(token):
 def forgot_password():
     """Reset password token emailed to personal email upon request"""
 
-    password_reset_form = ChangePasswordForm()
+    password_reset_form = SendPasswordResetForm()
 
     if password_reset_form.validate_on_submit():
         input_email = password_reset_form.personal_email.data

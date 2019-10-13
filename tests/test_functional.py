@@ -3,12 +3,11 @@
 
 See: http://webtest.readthedocs.org/
 """
-from flask import url_for
 from unittest import mock
 
-from seniority_visualizer_app.user.models import User
-from seniority_visualizer_app.user import email
+from flask import url_for
 
+from seniority_visualizer_app.user.models import User
 from .factories import UserFactory
 
 
@@ -70,7 +69,8 @@ class TestLoggingIn:
 class TestRegistering:
     """Register a user."""
 
-    def test_can_register(self, user, testapp):
+    @mock.patch("seniority_visualizer_app.public.views.send_confirmation_email")
+    def test_can_register(self, mocked_send_conf_email, user, testapp):
         """Register a new user."""
         old_count = len(User.query.all())
         # Goes to homepage
@@ -86,6 +86,7 @@ class TestRegistering:
         form["confirm"] = "secret"
         # Submits
         res = form.submit().follow()
+        assert mocked_send_conf_email.call_count == 2
         assert res.status_code == 200
         # A new user was created
         assert len(User.query.all()) == old_count + 1
@@ -173,7 +174,8 @@ class TestRegistration:
         assert user.personal_email_confirmed
         assert user.company_email_confirmed
 
-    def test_email_sent_alert_shown(self, db, testapp):
+    @mock.patch("seniority_visualizer_app.public.views.send_confirmation_email")
+    def test_email_sent_alert_shown(self, mock_send, db, testapp):
         form = testapp.get(url_for("public.register")).forms["registerForm"]
 
         form["username"] = "TestUser"

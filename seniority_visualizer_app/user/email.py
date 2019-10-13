@@ -14,12 +14,12 @@ def make_email_serializer(timeout=3600) -> TimedJSONWebSignatureSerializer:
     return email_serializer
 
 
-def send_async_email(message, app):
+def send_async_email(message: Message, app):
     """Send an email message"""
     with app.app_context():
-        print(f"SENDING MESSAGE")
+        current_app.logger.info(f"SENDING MESSAGE")
         mail.send(message)
-        print(f"SENT {vars(message)}")
+        current_app.logger.info(f"SENT {message.subject} to {message.recipients}")
 
 
 def send_email(message):
