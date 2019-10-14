@@ -8,17 +8,6 @@ from seniority_visualizer_app.user.models import User
 from seniority_visualizer_app.app import mail
 
 
-def mock_make_msgid():
-    return "<157093746497.29400.9452561162865134712@adder-ws>"
-
-
-# todo: move to conftest
-@pytest.fixture(scope="module")
-def patch_mail_id():
-    with mock.patch("flask_mail.make_msgid", side_effect=mock_make_msgid):
-        yield
-
-
 @pytest.fixture
 def logged_in_user(testapp, user: User) -> User:
     """
@@ -39,7 +28,6 @@ def logged_in_user(testapp, user: User) -> User:
     assert user.check_password("myprecious"), "password not set to original password"
 
 
-@pytest.mark.usefixtures("patch_mail_id")
 class TestUserPasswordManagement:
     def test_user_can_change_password(self, testapp, logged_in_user):
         """
