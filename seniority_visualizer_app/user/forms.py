@@ -1,14 +1,13 @@
 # -*- coding: utf-8 -*-
 """User forms."""
-from flask_wtf import FlaskForm, Form
-from wtforms import PasswordField, StringField, Field, ValidationError
-from wtforms.validators import DataRequired, Email, EqualTo, Length, InputRequired
-from sqlalchemy.exc import IntegrityError
-from sqlalchemy import func
 from flask import current_app
+from flask_wtf import FlaskForm
+from sqlalchemy import func
+from wtforms import PasswordField, StringField, ValidationError
+from wtforms.validators import DataRequired, Email, EqualTo, Length, InputRequired
 
 from .models import User
-from .validators import CompanyEmail, UniqueField
+from .validators import CompanyEmail
 
 
 class RegisterForm(FlaskForm):
@@ -101,9 +100,7 @@ class UserDetailsForm(FlaskForm):
                 raise ValidationError(f"{field.data} already registered!")
 
 
-class ChangePasswordForm(FlaskForm):
-    old_password = PasswordField("Current Password", validators=[InputRequired()])
-
+class PasswordResetForm(FlaskForm):
     new_password = PasswordField(
         "New Password", validators=[InputRequired(), Length(6, 24)]
     )
@@ -115,3 +112,11 @@ class ChangePasswordForm(FlaskForm):
             EqualTo("new_password", message="Passwords must match!"),
         ],
     )
+
+
+class ChangePasswordForm(PasswordResetForm):
+    old_password = PasswordField("Old Password", validators=[InputRequired()])
+
+
+class SendPasswordResetForm(FlaskForm):
+    personal_email = StringField("Pesonal Email", validators=[InputRequired(), Email()])

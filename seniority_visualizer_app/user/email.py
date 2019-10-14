@@ -14,12 +14,12 @@ def make_email_serializer(timeout=3600) -> TimedJSONWebSignatureSerializer:
     return email_serializer
 
 
-def send_async_email(message, app):
+def send_async_email(message: Message, app):
     """Send an email message"""
     with app.app_context():
-        print(f"SENDING MESSAGE")
+        current_app.logger.info(f"SENDING MESSAGE")
         mail.send(message)
-        print(f"SENT {vars(message)}")
+        current_app.logger.info(f"SENT {message.subject} to {message.recipients}")
 
 
 def send_email(message):
@@ -52,6 +52,24 @@ def send_confirmation_email(user: "User", email_category):
     # send message in background thread
     send_email(msg)
     return url
+
+
+def send_password_reset_token(user: "User", email_category, reset_url):
+    """Send a password reset email with timeout."""
+    recipient = getattr(user, email_category.value)
+
+    html = render_template("mail/reset_password.html", url=reset_url)
+    text = render_template("mail/reset_password.txt", url=reset_url)
+
+    msg = Message()
+    msg.subject = "Reset your password."
+    msg.html = html
+    msg.body = text
+    msg.recipients.append(recipient)
+
+    current_app.logger.info(f"EMAIL RESET -> sent to {recipient}")
+
+    send_email(msg)
 
 
 def _prep_email(s):
