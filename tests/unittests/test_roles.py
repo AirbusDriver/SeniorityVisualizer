@@ -4,6 +4,8 @@ from enum import auto, unique
 from seniority_visualizer_app.user.role import Permissions, Role
 from seniority_visualizer_app.user.utils import BaseTwoAutoEnum
 
+from tests.factories import UserFactory
+
 
 @pytest.fixture
 def bin_mapped_enum():
@@ -68,3 +70,17 @@ class TestRoles:
         confirmed = Role.query.filter(Role.name == "ConfirmedUser").first()
 
         assert confirmed, "ConfirmedUser not in db"
+
+    def test_flask_admin_created_with_admin_role(self, db, app):
+        admin_email = "supah_usah@example.com"
+
+        app.config["FLASK_ADMIN"] = admin_email
+
+        user = UserFactory(personal_email=admin_email)
+        user.save()
+
+        assert user.role.name == "Admin"
+
+        other_user = UserFactory()
+
+        assert other_user.role.name == "UnconfirmedUser"

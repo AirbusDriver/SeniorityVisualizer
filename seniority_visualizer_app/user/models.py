@@ -3,6 +3,7 @@
 import datetime as dt
 from typing import Optional, Union
 
+from flask import current_app
 from sqlalchemy import func
 from flask_login import UserMixin
 from itsdangerous import TimedJSONWebSignatureSerializer, SignatureExpired
@@ -62,7 +63,10 @@ class User(UserMixin, SurrogatePK, Model):
         else:
             self.password = None
 
-        self.role = role or Role.query.filter(Role.default).first()
+        if current_app.config.get("FLASK_ADMIN") == personal_email:
+            self.role = Role.query.filter(Role.name.ilike("admin")).first()
+        else:
+            self.role = role or Role.query.filter(Role.default).first()
 
     def set_password(self, password):
         """Set password."""

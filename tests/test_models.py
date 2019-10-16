@@ -111,6 +111,6 @@ class TestUser:
         role = Role(name="admin")
         role.save()
         user = UserFactory()
-        user.roles.append(role)
+        user.role = role
         user.save()
-        assert role in user.roles
+        assert role == user.role
