@@ -88,6 +88,13 @@ def register_commands(app):
 
 def configure_logger(app):
     """Configure loggers."""
+    app_logger: logging.Logger = app.logger
+    email_logger: logging.Logger = app_logger.getChild("email")
+
     handler = logging.StreamHandler(sys.stdout)
+
     if not app.logger.handlers:
         app.logger.addHandler(handler)
+
+    if app.config.get("MAIL_SUPPRESS_SEND"):
+        email_logger.info(f"Starting application with MAIL_SUPPRESS_SEND=True")
