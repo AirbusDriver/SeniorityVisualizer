@@ -11,6 +11,8 @@ from environs import Env
 env = Env()
 env.read_env()
 
+FLASK_ADMIN = env.str("FLASK_ADMIN")
+
 ENV = env.str("FLASK_ENV", default="production")
 DEBUG = ENV == "development"
 SQLALCHEMY_DATABASE_URI = env.str("DATABASE_URL")
@@ -29,3 +31,4 @@ MAIL_PASSWORD = env.str("MAIL_PASSWORD")
 MAIL_SERVER = env.str("MAIL_SERVER")
 MAIL_PORT = env.int("MAIL_PORT")
 MAIL_USE_SSL = True
+MAIL_SUPPRESS_SEND = env.bool("MAIL_SUPPRESS_SEND", default=False)

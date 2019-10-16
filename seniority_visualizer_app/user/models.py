@@ -63,7 +63,7 @@ class User(UserMixin, SurrogatePK, Model):
         else:
             self.password = None
 
-        if current_app.config.get("FLASK_ADMIN") == personal_email:
+        if current_app.config.get("FLASK_ADMIN") and (current_app.config.get("FLASK_ADMIN") == personal_email.lower()):
             self.role = Role.query.filter(Role.name.ilike("admin")).first()
         else:
             self.role = role or Role.query.filter(Role.default).first()

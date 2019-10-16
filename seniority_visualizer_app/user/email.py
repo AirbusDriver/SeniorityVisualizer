@@ -17,9 +17,10 @@ def make_email_serializer(timeout=3600) -> TimedJSONWebSignatureSerializer:
 def send_async_email(message: Message, app):
     """Send an email message"""
     with app.app_context():
-        current_app.logger.info(f"SENDING MESSAGE")
+        logger = current_app.logger.getChild("email")
+        logger.info(f"attempting to send email")
         mail.send(message)
-        current_app.logger.info(f"SENT {message.subject} to {message.recipients}")
+        logger.info(f"sent {message.subject} to {message.recipients}")
 
 
 def send_email(message):
@@ -50,6 +51,8 @@ def send_confirmation_email(user: "User", email_category):
     msg.recipients.append(getattr(user, email_category.value))
 
     # send message in background thread
+    logger = current_app.logger.getChild("email")
+    logger.info(f"sending confirmation email to {msg.recipients}")
     send_email(msg)
     return url
 
@@ -67,7 +70,8 @@ def send_password_reset_token(user: "User", email_category, reset_url):
     msg.body = text
     msg.recipients.append(recipient)
 
-    current_app.logger.info(f"EMAIL RESET -> sent to {recipient}")
+    logger = current_app.logger.getChild("email")
+    logger.info(f"sending password reset email to {recipient}")
 
     send_email(msg)
 

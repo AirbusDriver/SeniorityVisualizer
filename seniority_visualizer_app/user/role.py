@@ -87,7 +87,7 @@ class Role(SurrogatePK, Model):
         out = {}
 
         for role_name, perm_set in roles.items():
-            role = Role(role_name)
+            role = Role.query.filter(Role.name.ilike(role_name)).first() or Role(role_name)
             role.reset_permissions()
             role.add_permission(
                 sum(perm.value for perm in perm_set)

@@ -31,6 +31,7 @@ def create_app(config_object="seniority_visualizer_app.settings"):
     register_errorhandlers(app)
     register_shellcontext(app)
     register_commands(app)
+    register_request_hooks(app)
     configure_logger(app)
     return app
 
@@ -75,7 +76,7 @@ def register_shellcontext(app):
 
     def shell_context():
         """Shell context objects."""
-        return {"db": db, "User": user.models.User}
+        return {"db": db, "User": user.models.User, "Role": user.models.Role}
 
     app.shell_context_processor(shell_context)
 
@@ -88,6 +89,17 @@ def register_commands(app):
 
 def configure_logger(app):
     """Configure loggers."""
+    app_logger: logging.Logger = app.logger
+    email_logger: logging.Logger = app_logger.getChild("email")
+
     handler = logging.StreamHandler(sys.stdout)
+
     if not app.logger.handlers:
         app.logger.addHandler(handler)
+
+def register_request_hooks(app):
+    @app.before_first_request
+    def populate_db():
+        from seniority_visualizer_app.user.role import Role
+        app.logger.info("updating role permissions")
+        Role.insert_roles()
