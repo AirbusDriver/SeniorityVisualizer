@@ -9,6 +9,7 @@ from webtest import TestApp
 
 from seniority_visualizer_app.app import create_app
 from seniority_visualizer_app.database import db as _db
+from seniority_visualizer_app.user.role import Role
 
 from .factories import UserFactory
 
@@ -52,6 +53,7 @@ def db(app):
     _db.app = app
     with app.app_context():
         _db.create_all()
+        Role.insert_roles()
 
     yield _db
 

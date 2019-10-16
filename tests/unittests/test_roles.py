@@ -42,7 +42,6 @@ class TestRoles:
 
     def test_unconfirmed_user_role(self, db):
         unconfirmed = Role.query.filter(Role.name == "UnconfirmedUser").first()
-        admin = Role.query.filter()
 
         p = Permissions  # alias
 
@@ -51,7 +50,17 @@ class TestRoles:
         ):
             assert unconfirmed.has_permission(perm)
 
-        unconfirmed_permissions = set()
+        unconfirmed_permissions = {
+            p.EDIT_USER_DETAILS, p.VIEW_USER_DETAILS
+        }
+
+        excluded_permissions = set(Permissions).difference(unconfirmed_permissions)
+
+        for perm in unconfirmed_permissions:
+            assert unconfirmed.has_permission(perm)
+
+        for perm in excluded_permissions:
+            assert not unconfirmed.has_permission(perm)
 
         assert unconfirmed, "UnconfirmedUser not in db"
 

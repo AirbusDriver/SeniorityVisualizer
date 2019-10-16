@@ -8,34 +8,16 @@ from flask_login import UserMixin
 from itsdangerous import TimedJSONWebSignatureSerializer, SignatureExpired
 from enum import Enum
 
-
 from seniority_visualizer_app.database import (
     Column,
     Model,
     SurrogatePK,
     db,
-    reference_col,
     relationship,
 )
 from seniority_visualizer_app.extensions import bcrypt
+from seniority_visualizer_app.user.role import Role
 from .email import make_email_serializer
-
-
-class Role(SurrogatePK, Model):
-    """A role for a user."""
-
-    __tablename__ = "roles"
-    name = Column(db.String(80), unique=True, nullable=False)
-    user_id = reference_col("users", nullable=True)
-    user = relationship("User", backref="roles")
-
-    def __init__(self, name, **kwargs):
-        """Create instance."""
-        db.Model.__init__(self, name=name, **kwargs)
-
-    def __repr__(self):
-        """Represent instance as a unique string."""
-        return "<Role({name})>".format(name=self.name)
 
 
 class EmailCategories(Enum):
@@ -61,9 +43,11 @@ class User(UserMixin, SurrogatePK, Model):
     last_name = Column(db.String(30), nullable=True)
     active = Column(db.Boolean(), default=False)
     is_admin = Column(db.Boolean(), default=False)
+    role_id = Column(db.Integer, db.ForeignKey("roles.id"))
+    role = relationship("Role", backref="users")
 
     def __init__(
-        self, username, company_email, personal_email, password=None, **kwargs
+            self, username, company_email, personal_email, password=None, role=None, **kwargs
     ):
         """Create instance."""
         db.Model.__init__(
@@ -77,6 +61,8 @@ class User(UserMixin, SurrogatePK, Model):
             self.set_password(password)
         else:
             self.password = None
+
+        self.role = role or Role.query.filter(Role.default).first()
 
     def set_password(self, password):
         """Set password."""
