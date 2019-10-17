@@ -144,7 +144,7 @@ class TestRegistering:
 
 
 class TestRegistration:
-    def test_user_created_with_emails_not_confirmed(self, user: User, testapp):
+    def test_user_created_with_emails_not_confirmed_and_then_confirmed(self, user: User, testapp):
         assert user
         assert user.company_email_confirmed == user.personal_email_confirmed == False
 
@@ -152,6 +152,8 @@ class TestRegistration:
         token = user.generate_confirmation_token(user.email_categories.PERSONAL_EMAIL)
 
         url = url_for("user.confirm_user", token=token)
+
+        assert user.role.name == 'UnconfirmedUser'
 
         res = testapp.get(url).follow()
 
@@ -161,6 +163,8 @@ class TestRegistration:
 
         res.mustcontain("Thank you for confirming you email!")
 
+        assert user.role.name == 'UnconfirmedUser'
+
         # confirm company email
 
         token = user.generate_confirmation_token(user.email_categories.COMPANY_EMAIL)
@@ -169,6 +173,8 @@ class TestRegistration:
         res = testapp.get(url).follow()
 
         res.mustcontain("Thank you for confirming you email!")
+
+        assert user.role.name == "ConfirmedUser"
 
         assert res.status_code == 200
         assert user.personal_email_confirmed

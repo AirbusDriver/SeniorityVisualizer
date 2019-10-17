@@ -1,11 +1,10 @@
-from unittest import mock
-
 import pytest
 from flask import url_for
 from bs4 import BeautifulSoup
 
 from seniority_visualizer_app.user.models import User
 from seniority_visualizer_app.app import mail
+from tests.factories import UserFactory
 
 
 @pytest.fixture
@@ -96,3 +95,16 @@ class TestUserPasswordManagement:
         res = form.submit().maybe_follow()
 
         res.mustcontain(url_for("public.logout"))
+
+    def test_user_can_edit_own_details_but_not_others(self, testapp, logged_in_user):
+        other_user = UserFactory()
+        other_user.save()
+
+        res = testapp.get(url_for("user.details", user_id=logged_in_user.id))
+
+        res.mustcontain(logged_in_user.personal_email)
+        res.mustcontain(logged_in_user.company_email)
+
+        res = testapp.get(url_for("user.details", user_id=other_user.id), expect_errors=True)
+
+        assert res.status_code == 401

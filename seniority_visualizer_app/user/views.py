@@ -24,6 +24,8 @@ from .models import User
 from .email import compare_emails, send_password_reset_token
 from .forms import UserDetailsForm, SendPasswordResetForm, ChangePasswordForm, PasswordResetForm
 from seniority_visualizer_app.utils import flash_errors
+from seniority_visualizer_app.decorators import permissions_required
+from seniority_visualizer_app.user.role import Permissions
 
 PASSWORD_RESET_MAX_AGE = 3600
 
@@ -49,6 +51,9 @@ def parse_token_into_user_id(token, max_age=3600) -> Optional[User]:
 
 @blueprint.route("/")
 @login_required
+@permissions_required(
+    Permissions.VIEW_USERS
+)
 def members():
     """List members."""
     return render_template("users/members.html")
@@ -92,11 +97,14 @@ def confirm_user(token):
 
 @blueprint.route("/details/<int:user_id>", methods=["GET", "POST"])
 @login_required
+@permissions_required(
+    Permissions.VIEW_USER_DETAILS
+)
 def details(user_id):
     user: User = User.get_by_id(user_id)
 
     if not user or (current_user.id != user_id and not current_user.is_admin):
-        return render_template("401.html")
+        return abort(401)
 
     form = UserDetailsForm(
         user=user,

@@ -17,7 +17,7 @@ from seniority_visualizer_app.database import (
     relationship,
 )
 from seniority_visualizer_app.extensions import bcrypt
-from seniority_visualizer_app.user.role import Role
+from seniority_visualizer_app.user.role import Role, Permissions
 from .email import make_email_serializer
 
 
@@ -43,12 +43,17 @@ class User(UserMixin, SurrogatePK, Model):
     first_name = Column(db.String(30), nullable=True)
     last_name = Column(db.String(30), nullable=True)
     active = Column(db.Boolean(), default=False)
-    is_admin = Column(db.Boolean(), default=False)
     role_id = Column(db.Integer, db.ForeignKey("roles.id"))
     role = relationship("Role", backref="users")
 
     def __init__(
-            self, username, company_email, personal_email, password=None, role=None, **kwargs
+            self,
+            username,
+            company_email,
+            personal_email,
+            password=None,
+            role=None,
+            **kwargs,
     ):
         """Create instance."""
         db.Model.__init__(
@@ -63,7 +68,9 @@ class User(UserMixin, SurrogatePK, Model):
         else:
             self.password = None
 
-        if current_app.config.get("FLASK_ADMIN") and (current_app.config.get("FLASK_ADMIN") == personal_email.lower()):
+        if current_app.config.get("FLASK_ADMIN") and (
+                current_app.config.get("FLASK_ADMIN") == personal_email.lower()
+        ):
             self.role = Role.query.filter(Role.name.ilike("admin")).first()
         else:
             self.role = role or Role.query.filter(Role.default).first()
@@ -80,6 +87,10 @@ class User(UserMixin, SurrogatePK, Model):
     def full_name(self):
         """Full user name."""
         return "{0} {1}".format(self.first_name, self.last_name)
+
+    @property
+    def is_admin(self):
+        return self.role.has_permission(Permissions.ADMIN)
 
     @classmethod
     def get_by_email(
@@ -160,5 +171,7 @@ class User(UserMixin, SurrogatePK, Model):
             raise AttributeError(f"{email_attr} not a valid email category")
         attr = f"{email_attr}_confirmed"
         setattr(self, attr, True)
+        if email_attr.lower() == "company_email":
+            self.role = Role.query.filter(Role.name.ilike("ConfirmedUser")).first()
         self.save()
         return True
