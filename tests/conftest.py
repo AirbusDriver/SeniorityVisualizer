@@ -3,6 +3,9 @@
 
 import logging
 from unittest import mock
+import csv
+from pathlib import Path
+from datetime import datetime, timezone
 
 import pytest
 from webtest import TestApp
@@ -10,6 +13,7 @@ from webtest import TestApp
 from seniority_visualizer_app.app import create_app
 from seniority_visualizer_app.database import db as _db
 from seniority_visualizer_app.user.role import Role
+from seniority_visualizer_app.seniority.models import SeniorityListRecord, PilotRecord
 
 from .factories import UserFactory
 
@@ -68,3 +72,37 @@ def user(db):
     user = UserFactory(password="myprecious")
     db.session.commit()
     return user
+
+
+@pytest.fixture
+def seniority_list_from_csv(db):
+    """
+    Return the seniority list populated with records from sample.csv in the test directory
+    """
+    sample_csv_path = Path(__file__).parent.joinpath("sample.csv")
+    assert sample_csv_path.exists()
+
+    sen_list = SeniorityListRecord(published_date=datetime(2000, 1, 1, tzinfo=timezone.utc))
+    records = []
+
+    with open(sample_csv_path) as infile:
+        reader = csv.DictReader(infile)
+
+        for row in reader:
+            record = PilotRecord(
+                employee_id=row["cmid"].zfill(5),
+                seniority_list=sen_list,
+                hire_date=datetime.strptime(row["hire_date"], "%Y-%m-%d"),
+                retire_date=datetime.strptime(row["retire_date"], "%Y-%m-%d"),
+                literal_seniority_number=int(row["seniority_number"]),
+                first_name=row["first_name"],
+                last_name=row["last_name"],
+                base=row["base"],
+                aircraft=row["fleet"],
+                seat=row["seat"]
+            )
+    db.session.add_all(records)
+    db.session.add(sen_list)
+    db.session.commit()
+
+    return sen_list
