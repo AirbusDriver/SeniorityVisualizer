@@ -1,9 +1,13 @@
-from datetime import datetime
+from datetime import datetime, date
 
 import pytest
 
-from seniority_visualizer_app.seniority.models import SeniorityListRecord, PilotRecord
-from tests.factories import PilotRecordFactory
+from seniority_visualizer_app.seniority.models import (
+    SeniorityListRecord,
+    PilotRecord,
+    Pilot,
+)
+from tests.factories import PilotRecordFactory, PilotFactory
 
 
 @pytest.fixture
@@ -79,3 +83,53 @@ class TestPilotRecord:
         assert pilot_record.literal_seniority_number == 2
 
         assert PilotRecord.query.all()[0].employee_id == pilot_record.employee_id
+
+
+class TestPilot:
+    def test_pilot_is_senior_to(self):
+        """
+        Given two pilots, pilot1 hired before pilot2
+        Then the first pilot is considered senior
+        """
+        pilot1: Pilot = PilotFactory(hire_date=date(1990, 1, 1))
+        pilot2: Pilot = PilotFactory(hire_date=date(1991, 1, 1))
+
+        assert pilot1.is_senior_to(pilot2)
+        assert not pilot2.is_senior_to(pilot1)
+
+        """
+        Given two pilots hired on the same day
+        And the second pilot retires after the first pilot
+        Then the pilot retiring before the other pilot is considered more senior
+        """
+        pilot1.retire_date = date(2000, 1, 1)
+        pilot2.hire_date = date(1990, 1, 1)
+        pilot2.retire_date = date(2001, 1, 1)
+
+        assert pilot1.is_senior_to(pilot2)
+        assert not pilot2.is_senior_to(pilot1)
+
+        """
+        Given two pilots hired on the same day
+        And the second pilot retires on the same day as the first
+        And the second pilot has a higher literal seniority number assigned
+        Then pilot1 is considered more senior
+        """
+        hd = date(1990, 1, 1)
+        rd = date(2000, 1, 1)
+        pilot1 = PilotFactory(hire_date=hd, retire_date=rd, literal_seniority_number=1)
+        pilot2 = PilotFactory(hire_date=hd, retire_date=rd, literal_seniority_number=2)
+
+        assert pilot1.is_senior_to(pilot2)
+        assert not pilot2.is_senior_to(pilot1)
+
+        """
+        Given two pilots hired on the same day
+        And the second pilot retires on the same day as the first
+        And the second pilot does not have a literal seniority number assigned
+        Then pilot1 is considered more senior
+        """
+        pilot2.literal_seniority_number = None
+
+        assert pilot1.is_senior_to(pilot2)
+        assert not pilot2.is_senior_to(pilot1)

@@ -74,6 +74,7 @@ def user(db):
     return user
 
 
+# todo: rescope to module level
 @pytest.fixture
 def seniority_list_from_csv(db):
     """
