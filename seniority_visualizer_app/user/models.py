@@ -46,6 +46,7 @@ class User(UserMixin, SurrogatePK, Model):
     active = Column(db.Boolean(), default=False)
     role_id = Column(db.Integer, db.ForeignKey("roles.id"))
     role = relationship("Role", backref="users")
+    employee_id = Column(db.String(16), unique=True, nullable=True)
 
     def __init__(
             self,
