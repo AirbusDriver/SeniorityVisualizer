@@ -240,3 +240,17 @@ class TestPilotRecordPilotIntegration:
         assert pilot.retire_date == pilot_record.retire_date.date()
         assert pilot.employee_id == pilot_record.employee_id
         assert pilot.literal_seniority_number == pilot_record.literal_seniority_number
+
+
+class TestSeniorityListRecordSeniorityListIntegration:
+    def test_to_seniority_list(self, seniority_list_from_csv):
+        sen_list_record = seniority_list_from_csv
+
+        sen_list = sen_list_record.to_seniority_list()
+
+        assert len(sen_list) == len(sen_list_record.pilots)
+        assert set(
+            p.literal_seniority_number for p in sen_list.pilot_data
+        ) == set(
+            p.literal_seniority_number for p in sen_list_record.pilots
+        )

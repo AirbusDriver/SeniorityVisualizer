@@ -3,10 +3,8 @@ Contains the models for the management of seniority data.
 """
 from __future__ import annotations
 
-import csv
-from datetime import date, datetime, timedelta
-from pathlib import Path
-from typing import Any, Dict, Iterable, Iterator, List, Optional, Union
+from datetime import date, datetime
+from typing import Any, Dict, Iterable, Iterator, Optional, Union
 
 from seniority_visualizer_app.database import (
     Column,
@@ -31,9 +29,17 @@ class SeniorityListRecord(Model, SurrogatePK):
     def __init__(self, published_date: datetime, **kwargs):
         super().__init__(published_date=published_date, **kwargs)
 
-    # branch: implement
-    def to_seniority_list(self):
-        pass
+    def to_seniority_list(self) -> SeniorityList:
+        """
+        Return a `SeniorityList` from the `SeniorityListRecord` object.
+        """
+        pilots = []
+        for pr in self.pilots:
+            pilots.append(pr.to_pilot())
+
+        sen_list = SeniorityList(pilots)
+
+        return sen_list
 
 
 class PilotRecord(Model, SurrogatePK):
@@ -229,7 +235,6 @@ class Pilot:
         return self.hire_date <= _date < self.retire_date
 
 
-# branch: implement
 class SeniorityList:
     """
     Models collection and hierarchical behaviors of individual Pilot records
@@ -244,6 +249,15 @@ class SeniorityList:
 
     def __len__(self):
         return len(self._pilots)
+
+    @property
+    def pilot_data(self):
+        """All pilots"""
+        return self._pilots.copy()
+
+    @pilot_data.setter
+    def pilot_data(self, val):
+        raise AttributeError("pilot data is read only")
 
     def filter_active_on(
         self, ref_date: Union[date, datetime, None] = None
