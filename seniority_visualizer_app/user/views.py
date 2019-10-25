@@ -114,6 +114,7 @@ def details(user_id):
         username=user.username,
         company_email=user.company_email,
         personal_email=user.personal_email,
+        employee_number=user.employee_id,
     )
 
     current_app.logger.debug(pformat(vars(user)))
@@ -123,7 +124,8 @@ def details(user_id):
             user.username = form.username.data.strip()
             user.company_email = form.company_email.data.strip()
             user.personal_email = form.personal_email.data.strip()
-            user.update(commit=True)
+            user.employee_id = form.employee_number.data.strip()
+            user.save(commit=True)
         except IntegrityError:
             current_app.logger.exception(f"IN -> user.views.details...\n" f"{user}")
             flash("INTEGRITY ERROR!! Error logged.")

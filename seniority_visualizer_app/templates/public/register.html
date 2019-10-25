@@ -16,7 +16,7 @@
         </p>
     </div>
     <br/>
-    <form id="registerForm" class="form form-register" method="POST" action="" role="form">
+    <form id="registerForm" class="form form-register" method="POST" role="form">
            {{ form.csrf_token }}
             <div class="form-group">
                 {{form.username.label}}
@@ -40,7 +40,7 @@
                 {{form.confirm.label}}
                 {{form.confirm(placeholder="Password (again)", class_="form-control")}}
             </div>
-            <p><input class="btn btn-primary" type="submit" value="Register"></p>
+        <button class="btn btn-primary" type="submit">Register</button>
     </form>
     <p><em>Already registered?</em> Click <a href="/">here</a> to login.</p>
 </div>
