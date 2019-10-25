@@ -1,4 +1,6 @@
 from datetime import datetime, date
+from random import shuffle
+from typing import List
 
 import pytest
 
@@ -133,3 +135,27 @@ class TestPilot:
 
         assert pilot1.is_senior_to(pilot2)
         assert not pilot2.is_senior_to(pilot1)
+
+    def test_pilot_hashing(self):
+        pilots = PilotFactory.build_batch(10)
+
+        pilot1 = pilots[0]
+
+        p_set = set(pilots)
+
+        assert pilot1 in pilots
+        assert pilot1 in p_set
+        assert len(p_set) == 10
+        assert pilot1 is not pilots[1]
+
+    def test_pilot_ordering(self):
+        pilots: List[Pilot] = PilotFactory.build_batch(10)
+        copied = pilots.copy()
+
+        assert copied == pilots
+        assert sorted(pilots) == pilots
+
+        shuffle(pilots)
+
+        assert not pilots == copied
+        assert sorted(pilots) == copied
