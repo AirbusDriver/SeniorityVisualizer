@@ -2,7 +2,7 @@
 Contains the models for the management of seniority data.
 """
 from __future__ import annotations
-from typing import Union, Optional, List, Dict, Iterable, Callable
+from typing import Union, Optional, List, Dict, Iterable, Iterator
 from datetime import datetime, date, timedelta
 from pathlib import Path
 import csv
@@ -77,7 +77,6 @@ class PilotRecord(Model, SurrogatePK):
         return cls(**out)
 
 
-# branch: implement
 class Pilot:
     """
     Models the individual pilot record interactions and states
@@ -105,6 +104,7 @@ class Pilot:
                 "'hire_date' and 'retire_date' must be of type date or datetime"
             )
 
+    # branch: implement
     @classmethod
     def from_pilot_record(cls, pilot_record: PilotRecord) -> Pilot:
         pass
@@ -168,6 +168,26 @@ class Pilot:
                     return self_lit is not None and other_lit is None
         return False
 
+    def is_active_on(self, ref_date: Union[date, datetime, None] = None) -> bool:
+        """
+        Return True if the pilot is active on `ref_date`. If a `ref_date` is not given,
+        the system current date will be used. The pilot is considered "active" if
+        `Pilot.hire_date` <= `ref_date` < `Pilot.retire_date`.
+
+        :param ref_date: date to reference, date.today() will be used if None
+        :return: True if pilot active on `ref_date`
+        """
+        if ref_date is None:
+            _date = date.today()
+        elif isinstance(ref_date, datetime):
+            _date = ref_date.date()
+        else:
+            _date = ref_date
+        if not isinstance(_date, date):
+            raise TypeError("ref_date must be of type date or datetime or None")
+
+        return self.hire_date <= _date < self.retire_date
+
 
 # branch: implement
 class SeniorityList:
@@ -176,4 +196,26 @@ class SeniorityList:
     """
 
     def __init__(self, pilots: Optional[Iterable[Pilot]] = None):
-        self._pilots = [] if pilots is None else pilots[::]
+        self._pilots = [] if pilots is None else [p for p in pilots]
+
+    def __repr__(self):
+        s = f"<{type(self).__name__}(len: {len(self)})>"
+        return s
+
+    def __len__(self):
+        return len(self._pilots)
+
+    def filter_active_on(
+        self, ref_date: Union[date, datetime, None] = None
+    ) -> Iterator[Pilot]:
+        """
+        Return an iterator of Pilot objects that are active on `ref_date`. If it is
+        not provided, the system date.today() is used.
+
+        :param ref_date: date to check pilot status against
+        :return: iterator of Pilot objects
+        """
+        ref = date.today() if ref_date is None else ref_date
+        if isinstance(ref, datetime):
+            ref = ref.date()
+        return (p for p in self._pilots if p.is_active_on(ref))

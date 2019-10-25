@@ -1,4 +1,4 @@
-from datetime import datetime, date
+from datetime import datetime, date, timedelta
 from random import shuffle
 from typing import List
 
@@ -8,6 +8,7 @@ from seniority_visualizer_app.seniority.models import (
     SeniorityListRecord,
     PilotRecord,
     Pilot,
+    SeniorityList,
 )
 from tests.factories import PilotRecordFactory, PilotFactory
 
@@ -159,3 +160,56 @@ class TestPilot:
 
         assert not pilots == copied
         assert sorted(pilots) == copied
+
+    def test_pilot_active_on(self):
+        hired = date(2020, 1, 1)
+        day_before_hired = hired - timedelta(days=1)
+        retired = date(2030, 1, 1)
+        day_before_retired = retired - timedelta(days=1)
+
+        pilot = PilotFactory(hire_date=hired, retire_date=retired)
+
+        assert not pilot.is_active_on(day_before_hired)
+        assert pilot.is_active_on(hired)
+        assert pilot.is_active_on(day_before_retired)
+        assert not pilot.is_active_on(retired)
+
+
+class TestSeniorityList:
+    def test_instantiation_with_pilots(self):
+        pilots = PilotFactory.build_batch(50)
+
+        sen_list = SeniorityList(pilots)
+
+        assert sen_list._pilots == pilots
+        assert set(pilots) == set(sen_list._pilots)
+
+        assert len(sen_list) == 50
+        assert "len: 50" in repr(sen_list)
+
+    def test_filter_active_on(self):
+        rd = date(2050, 1, 1)
+        class_1_hd = date(2000, 1, 1)
+        class_2_hd = date(2010, 1, 1)
+        class_1 = PilotFactory.build_batch(10, hire_date=class_1_hd, retire_date=rd)
+        class_2 = PilotFactory.build_batch(10, hire_date=class_2_hd, retire_date=rd)
+
+        all_pilots = [p for p in class_1]
+        all_pilots.extend(class_2)
+
+        sen_list = SeniorityList(all_pilots)
+
+        assert len(set(sen_list.filter_active_on(class_1_hd - timedelta(days=1)))) == 0
+
+        retrieved_class_1 = list(sen_list.filter_active_on(class_1_hd))
+        retrieved_class_2 = list(sen_list.filter_active_on(class_2_hd))
+
+        assert set(retrieved_class_1) == set(class_1)
+        assert len(retrieved_class_1) == 10
+
+        both = set(retrieved_class_1)
+        both.update(set(retrieved_class_2))
+
+        assert both == set(all_pilots)
+
+        assert len(set(sen_list.filter_active_on(date(2060, 1, 1)))) == 0
