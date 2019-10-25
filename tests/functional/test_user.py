@@ -1,9 +1,9 @@
 import pytest
-from flask import url_for
 from bs4 import BeautifulSoup
+from flask import url_for
 
-from seniority_visualizer_app.user.models import User
 from seniority_visualizer_app.app import mail
+from seniority_visualizer_app.user.models import User
 from tests.factories import UserFactory
 
 
@@ -105,6 +105,8 @@ class TestUserPasswordManagement:
         res.mustcontain(logged_in_user.personal_email)
         res.mustcontain(logged_in_user.company_email)
 
-        res = testapp.get(url_for("user.details", user_id=other_user.id), expect_errors=True)
+        res = testapp.get(
+            url_for("user.details", user_id=other_user.id), expect_errors=True
+        )
 
         assert res.status_code == 401

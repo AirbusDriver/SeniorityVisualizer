@@ -1,0 +1,47 @@
+
+V
+&seniority_visualizer_app/decorators.py,e/7/e78785e12d2aa8d0878f7ee293fc6ed3739108d3
+H
+tests/test_functional.py,1/f/1f8c01bac94ce2108012ccc207dee7d789a67a90
+D
+Private/Road Map.rst,0/c/0c85a6a701a67696be80274b11ff9a5fc556dce9
+b
+2Private/feats/moderator uploads seniority list.rst,f/8/f86e23e67cedb0633a7b26049d40d3c8f4ca0261
+V
+&seniority_visualizer_app/user/views.py,1/c/1c86a590a12f516ca5c22dc5427c56dfe47a3f11
+Y
+)seniority_visualizer_app/user/__init__.py,c/c/cc1505400f0fab64ce1b49c52235660fecf834a0
+U
+%seniority_visualizer_app/user/role.py,c/d/cdde1c192f0c811e7066a67f6c0131a0afda2387
+W
+'seniority_visualizer_app/user/models.py,3/7/37d1f9495e8bbe47d1079fc604750977e046fa8d
+T
+$seniority_visualizer_app/database.py,e/7/e7e7237ccc5be6c7af5f88f415134bfa6ddc4c97
+4
+.env,3/c/3c84dcdc6bbe3d7817c49dcdc327b926fea1808a
+T
+$seniority_visualizer_app/settings.py,a/8/a8a18b3e108e0adc1248a7e181bec347cc5ab420
+F
+Private/datasource.csv,4/6/46de5f644471d8773d0ae9eef42768f7c9be0bc7
+@
+tests/sample.csv,0/e/0e1cc9106082bc5958b1b24b31c16ec2db77ec50
+O
+seniority_visualizer_app/app.py,e/5/e5f38c30081d2a50e73e6b755bf801d253ca0efb
+[
++seniority_visualizer_app/seniority/views.py,3/5/35893b84f4aa4f7bf1c4df9fbdffcda593753c10
+^
+.seniority_visualizer_app/seniority/__init__.py,c/d/cd3bc9d5531a2694f5dd08a46323c46e56889ca4
+c
+3migrations/versions/26edc91879c5_adds_and_tables.py,f/6/f65d009495a14e5bfc260c934e32440b70bb4a1d
+T
+$migrations/versions/c63600b80371_.py,0/b/0bdcd9d646d13e72c2f470cbc4a7333b215bfcf6
+a
+1seniority_visualizer_app/seniority/serializers.py,c/7/c751c8054727ca31a37a93ac6ce6d7dcbaae73c8
+A
+tests/conftest.py,6/2/626af34e8204774ea46e20955936146dedc828eb
+B
+tests/factories.py,8/e/8e650c0cdfdb88d8c15c8b3ed10b1044c76791a5
+\
+,seniority_visualizer_app/seniority/models.py,f/1/f1f99c807c30fcef8381009d43b68f6faa60c51d
+Q
+!tests/unittests/test_seniority.py,9/f/9f85e639ada74dc3c828da785de0f280c3782ae7

@@ -1,13 +1,13 @@
 # -*- coding: utf-8 -*-
 """User models."""
 import datetime as dt
+from enum import Enum
 from typing import Optional, Union
 
 from flask import current_app
-from sqlalchemy import func
 from flask_login import UserMixin
-from itsdangerous import TimedJSONWebSignatureSerializer, SignatureExpired
-from enum import Enum
+from itsdangerous import SignatureExpired, TimedJSONWebSignatureSerializer
+from sqlalchemy import func
 
 from seniority_visualizer_app.database import (
     Column,
@@ -17,7 +17,8 @@ from seniority_visualizer_app.database import (
     relationship,
 )
 from seniority_visualizer_app.extensions import bcrypt
-from seniority_visualizer_app.user.role import Role, Permissions
+from seniority_visualizer_app.user.role import Permissions, Role
+
 from .email import make_email_serializer
 
 

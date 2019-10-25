@@ -4,8 +4,8 @@ Decorators module.
 Route decorators
 """
 from functools import wraps
-from flask import abort
 
+from flask import abort
 from flask_login import current_user
 
 from seniority_visualizer_app.user.role import Permissions
@@ -19,7 +19,9 @@ def permissions_required(*permissions: Permissions):
         def _view(*args, **kwargs):
             total_perms = sum(permissions)
             user_has_perms = current_user.role.has_permission(total_perms)
-            if not (user_has_perms or current_user.role.has_permission(Permissions.ADMIN)):
+            if not (
+                    user_has_perms or current_user.role.has_permission(Permissions.ADMIN)
+            ):
                 abort(401)
             return func(*args, **kwargs)
 
