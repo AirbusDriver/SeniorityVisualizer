@@ -1,8 +1,9 @@
 from enum import auto, unique
-from sqlalchemy import Boolean, Integer
-from typing import Union, Dict
+from typing import Dict, Union
 
-from seniority_visualizer_app.database import SurrogatePK, Model, Column
+from sqlalchemy import Boolean, Integer
+
+from seniority_visualizer_app.database import Column, Model, SurrogatePK
 from seniority_visualizer_app.extensions import db
 from seniority_visualizer_app.user.utils import BaseTwoAutoEnum
 
@@ -10,6 +11,7 @@ from seniority_visualizer_app.user.utils import BaseTwoAutoEnum
 @unique
 class Permissions(BaseTwoAutoEnum):
     """Enumeration of the permission types"""
+
     ADMIN = auto()
     VIEW_SENIORITY_DATA = auto()
     EDIT_SENIORITY_DATA = auto()
@@ -24,17 +26,11 @@ def generate_permission_sets() -> Dict[str, set]:
     """
     p = Permissions  # alias for brevity
 
-    unconfirmed_user = {
-        p.VIEW_USER_DETAILS, p.EDIT_USER_DETAILS
-    }
+    unconfirmed_user = {p.VIEW_USER_DETAILS, p.EDIT_USER_DETAILS}
 
-    confirmed_user = {
-        p.VIEW_SENIORITY_DATA, p.VIEW_USERS
-    }.union(unconfirmed_user)
+    confirmed_user = {p.VIEW_SENIORITY_DATA, p.VIEW_USERS}.union(unconfirmed_user)
 
-    admin_user = {
-        p.EDIT_SENIORITY_DATA, p.ADMIN
-    }.union(confirmed_user)
+    admin_user = {p.EDIT_SENIORITY_DATA, p.ADMIN}.union(confirmed_user)
 
     roles = {
         "UnconfirmedUser": unconfirmed_user,
@@ -98,11 +94,11 @@ class Role(SurrogatePK, Model):
         out = {}
 
         for role_name, perm_set in roles.items():
-            role = Role.query.filter(Role.name.ilike(role_name)).first() or Role(role_name)
-            role.reset_permissions()
-            role.add_permission(
-                sum(perm.value for perm in perm_set)
+            role = Role.query.filter(Role.name.ilike(role_name)).first() or Role(
+                role_name
             )
+            role.reset_permissions()
+            role.add_permission(sum(perm.value for perm in perm_set))
             out[role_name] = role
 
         return out

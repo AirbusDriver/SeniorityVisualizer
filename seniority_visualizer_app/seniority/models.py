@@ -2,17 +2,18 @@
 Contains the models for the management of seniority data.
 """
 from __future__ import annotations
-from typing import Union, Optional, List, Dict, Iterable, Iterator
-from datetime import datetime, date, timedelta
-from pathlib import Path
+
 import csv
+from datetime import date, datetime, timedelta
+from pathlib import Path
+from typing import Any, Dict, Iterable, Iterator, List, Optional, Union
 
 from seniority_visualizer_app.database import (
-    Model,
     Column,
-    relationship,
+    Model,
     SurrogatePK,
     db,
+    relationship,
 )
 
 
@@ -29,6 +30,10 @@ class SeniorityListRecord(Model, SurrogatePK):
 
     def __init__(self, published_date: datetime, **kwargs):
         super().__init__(published_date=published_date, **kwargs)
+
+    # branch: implement
+    def to_seniority_list(self):
+        pass
 
 
 class PilotRecord(Model, SurrogatePK):
@@ -57,9 +62,9 @@ class PilotRecord(Model, SurrogatePK):
         s = f"<{type(self).__name__} - emp_id: {self.employee_id}>"
         return s
 
-    # branch: implement and test
-    def to_pilot(self):
-        return Pilot.from_pilot_record(self)
+    def to_pilot(self) -> Pilot:
+        """Return a Pilot object from PilotRecord"""
+        return Pilot.from_dict(self.to_dict())
 
     @classmethod
     def from_dict(cls, _dict: Dict) -> PilotRecord:
@@ -76,6 +81,24 @@ class PilotRecord(Model, SurrogatePK):
 
         return cls(**out)
 
+    def to_dict(self):
+        """
+        Return a dict of pilot record information
+        """
+        dict_keys = [
+            "employee_id",
+            "seniority_list_id",
+            "hire_date",
+            "retire_date",
+            "literal_seniority_number",
+            "first_name",
+            "last_name",
+            "base",
+            "seat",
+            "aircraft",
+        ]
+        return {k: getattr(self, k, None) for k in dict_keys}
+
 
 class Pilot:
     """
@@ -90,10 +113,8 @@ class Pilot:
         literal_seniority_number: Optional[int] = None,
     ):
         self.employee_id = employee_id
-        self._hire_date = hire_date if isinstance(hire_date, date) else hire_date.date()
-        self._retire_date = (
-            retire_date if isinstance(retire_date, date) else retire_date.date()
-        )
+        self._hire_date = hire_date
+        self._retire_date = retire_date
         self.literal_seniority_number = literal_seniority_number
 
         if not (
@@ -104,29 +125,28 @@ class Pilot:
                 "'hire_date' and 'retire_date' must be of type date or datetime"
             )
 
-    # branch: implement
-    @classmethod
-    def from_pilot_record(cls, pilot_record: PilotRecord) -> Pilot:
-        pass
-
     @property
     def hire_date(self) -> date:
+        if isinstance(self._hire_date, datetime):
+            return self._hire_date.date()
         return self._hire_date
 
     @hire_date.setter
     def hire_date(self, val: Union[date, datetime]) -> None:
-        if isinstance(val, datetime):
-            val = val.date()
+        if not isinstance(val, (date, datetime)):
+            raise TypeError("val must be date or datetime")
         self._hire_date = val
 
     @property
     def retire_date(self) -> date:
+        if isinstance(self._retire_date, datetime):
+            return self._retire_date.date()
         return self._retire_date
 
     @retire_date.setter
     def retire_date(self, val: Union[date, datetime]) -> None:
-        if isinstance(val, datetime):
-            val = val.date()
+        if not isinstance(val, (date, datetime)):
+            raise TypeError("val must be date or datetime")
         self._retire_date = val
 
     def __lt__(self, other):
@@ -142,6 +162,26 @@ class Pilot:
     def __repr__(self):
         s = f"<{type(self).__name__}(emp_id: {self.employee_id} hired: {self.hire_date} retires: {self.retire_date})>"
         return s
+
+    @classmethod
+    def from_dict(cls, _dict: Dict[str, Any]) -> Pilot:
+        """
+        Return a Pilot from a dict
+        """
+        required_kwargs = [
+            "employee_id",
+            "hire_date",
+            "retire_date",
+            "literal_seniority_number",
+        ]
+        init_dict = dict.fromkeys(required_kwargs)
+
+        init_dict["employee_id"] = str(_dict["employee_id"])
+        init_dict["hire_date"] = _dict["hire_date"]
+        init_dict["retire_date"] = _dict["retire_date"]
+        init_dict["literal_seniority_number"] = _dict["literal_seniority_number"]
+
+        return cls(**init_dict)
 
     # todo: add strategies
     def is_senior_to(self, other: Pilot) -> bool:

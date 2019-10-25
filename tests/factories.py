@@ -1,16 +1,16 @@
 # -*- coding: utf-8 -*-
 """Factories to help in tests."""
-from datetime import datetime, timedelta, timezone, date
 import math
+from datetime import date, datetime, timedelta, timezone
 
-from factory import PostGenerationMethodCall, Sequence, LazyAttribute, sequence, Factory
-from factory.fuzzy import FuzzyDateTime, FuzzyChoice
-from factory.faker import Faker
+from factory import Factory, LazyAttribute, PostGenerationMethodCall, Sequence, sequence
 from factory.alchemy import SQLAlchemyModelFactory
+from factory.faker import Faker
+from factory.fuzzy import FuzzyChoice, FuzzyDateTime
 
 from seniority_visualizer_app.database import db
+from seniority_visualizer_app.seniority.models import Pilot, PilotRecord
 from seniority_visualizer_app.user.models import User
-from seniority_visualizer_app.seniority.models import PilotRecord, Pilot
 
 
 class BaseFactory(SQLAlchemyModelFactory):
@@ -86,7 +86,5 @@ class PilotFactory(Factory):
         adj_year, adj_month = divmod(n, 12)
 
         return date(
-            retirements_start.year + adj_year,
-            retirements_start.month + adj_month,
-            1,
+            retirements_start.year + adj_year, retirements_start.month + adj_month, 1
         )

@@ -1,19 +1,19 @@
 # -*- coding: utf-8 -*-
 """Defines fixtures available to all tests."""
 
-import logging
-from unittest import mock
 import csv
-from pathlib import Path
+import logging
 from datetime import datetime, timezone
+from pathlib import Path
+from unittest import mock
 
 import pytest
 from webtest import TestApp
 
 from seniority_visualizer_app.app import create_app
 from seniority_visualizer_app.database import db as _db
+from seniority_visualizer_app.seniority.models import PilotRecord, SeniorityListRecord
 from seniority_visualizer_app.user.role import Role
-from seniority_visualizer_app.seniority.models import SeniorityListRecord, PilotRecord
 
 from .factories import UserFactory
 
@@ -83,7 +83,9 @@ def seniority_list_from_csv(db):
     sample_csv_path = Path(__file__).parent.joinpath("sample.csv")
     assert sample_csv_path.exists()
 
-    sen_list = SeniorityListRecord(published_date=datetime(2000, 1, 1, tzinfo=timezone.utc))
+    sen_list = SeniorityListRecord(
+        published_date=datetime(2000, 1, 1, tzinfo=timezone.utc)
+    )
     records = []
 
     with open(sample_csv_path) as infile:
@@ -100,7 +102,7 @@ def seniority_list_from_csv(db):
                 last_name=row["last_name"],
                 base=row["base"],
                 aircraft=row["fleet"],
-                seat=row["seat"]
+                seat=row["seat"],
             )
     db.session.add_all(records)
     db.session.add(sen_list)

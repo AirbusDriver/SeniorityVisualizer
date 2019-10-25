@@ -1,16 +1,16 @@
-from datetime import datetime, date, timedelta
+from datetime import date, datetime, timedelta
 from random import shuffle
 from typing import List
 
 import pytest
 
 from seniority_visualizer_app.seniority.models import (
-    SeniorityListRecord,
-    PilotRecord,
     Pilot,
+    PilotRecord,
     SeniorityList,
+    SeniorityListRecord,
 )
-from tests.factories import PilotRecordFactory, PilotFactory
+from tests.factories import PilotFactory, PilotRecordFactory
 
 
 @pytest.fixture
@@ -174,6 +174,21 @@ class TestPilot:
         assert pilot.is_active_on(day_before_retired)
         assert not pilot.is_active_on(retired)
 
+    def test_from_dict(self):
+        info = {
+            "hire_date": datetime(2020, 1, 1),
+            "retire_date": datetime(2050, 1, 1),
+            "employee_id": "12345",
+            "literal_seniority_number": 10,
+        }
+
+        new_pilot = Pilot.from_dict(info)
+
+        for k, v in info.items():
+            if isinstance(v, datetime):
+                v = v.date()
+            assert getattr(new_pilot, k) == v
+
 
 class TestSeniorityList:
     def test_instantiation_with_pilots(self):
@@ -213,3 +228,15 @@ class TestSeniorityList:
         assert both == set(all_pilots)
 
         assert len(set(sen_list.filter_active_on(date(2060, 1, 1)))) == 0
+
+
+class TestPilotRecordPilotIntegration:
+    def test_to_pilot(self):
+        pilot_record = PilotRecordFactory.build()
+
+        pilot = pilot_record.to_pilot()
+
+        assert pilot.hire_date == pilot_record.hire_date.date()
+        assert pilot.retire_date == pilot_record.retire_date.date()
+        assert pilot.employee_id == pilot_record.employee_id
+        assert pilot.literal_seniority_number == pilot_record.literal_seniority_number

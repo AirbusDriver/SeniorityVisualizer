@@ -1,9 +1,9 @@
-import pytest
 from enum import auto, unique
+
+import pytest
 
 from seniority_visualizer_app.user.role import Permissions, Role
 from seniority_visualizer_app.user.utils import BaseTwoAutoEnum
-
 from tests.factories import UserFactory
 
 
@@ -25,7 +25,7 @@ class TestBinaryMappedAutoEnum:
         assert repr(bm.A) == "<SampleEnum.A>"
         assert 1 == bm.A
         assert bm.A == bm.A
-        assert bm.A.bit_mask == '001'
+        assert bm.A.bit_mask == "001"
 
     def test_bitwise(self, bin_mapped_enum):
         bm = bin_mapped_enum
@@ -47,14 +47,10 @@ class TestRoles:
 
         p = Permissions  # alias
 
-        for perm in (
-                p.VIEW_USER_DETAILS, p.EDIT_USER_DETAILS
-        ):
+        for perm in (p.VIEW_USER_DETAILS, p.EDIT_USER_DETAILS):
             assert unconfirmed.has_permission(perm)
 
-        unconfirmed_permissions = {
-            p.EDIT_USER_DETAILS, p.VIEW_USER_DETAILS
-        }
+        unconfirmed_permissions = {p.EDIT_USER_DETAILS, p.VIEW_USER_DETAILS}
 
         excluded_permissions = set(Permissions).difference(unconfirmed_permissions)
 

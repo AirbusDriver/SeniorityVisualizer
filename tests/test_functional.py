@@ -8,6 +8,7 @@ from unittest import mock
 from flask import url_for
 
 from seniority_visualizer_app.user.models import User
+
 from .factories import UserFactory
 
 
@@ -144,7 +145,9 @@ class TestRegistering:
 
 
 class TestRegistration:
-    def test_user_created_with_emails_not_confirmed_and_then_confirmed(self, user: User, testapp):
+    def test_user_created_with_emails_not_confirmed_and_then_confirmed(
+            self, user: User, testapp
+    ):
         assert user
         assert user.company_email_confirmed == user.personal_email_confirmed == False
 
@@ -153,7 +156,7 @@ class TestRegistration:
 
         url = url_for("user.confirm_user", token=token)
 
-        assert user.role.name == 'UnconfirmedUser'
+        assert user.role.name == "UnconfirmedUser"
 
         res = testapp.get(url).follow()
 
@@ -163,7 +166,7 @@ class TestRegistration:
 
         res.mustcontain("Thank you for confirming you email!")
 
-        assert user.role.name == 'UnconfirmedUser'
+        assert user.role.name == "UnconfirmedUser"
 
         # confirm company email
 
