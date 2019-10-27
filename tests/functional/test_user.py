@@ -128,4 +128,4 @@ class TestUserPasswordManagement:
         form = res.forms["userDetailsForm"]
 
         assert form["employee_number"].value == "123"
-        assert logged_in_user.employee_id == "123"
+        assert str(logged_in_user.employee_id) == "00123"
