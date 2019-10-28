@@ -4,8 +4,11 @@ Contains the models for the management of seniority data.
 from __future__ import annotations
 
 from datetime import date, datetime
-from typing import Any, Dict, Iterable, Iterator, Optional, Union
+from typing import Any, Dict, Iterable, Iterator, Optional, Union, List
 
+from sqlalchemy.ext.hybrid import hybrid_property, hybrid_method
+
+from .utils import standardize_employee_id
 from seniority_visualizer_app.database import (
     Column,
     Model,
@@ -67,6 +70,11 @@ class PilotRecord(Model, SurrogatePK):
     def __repr__(self):
         s = f"<{type(self).__name__} - emp_id: {self.employee_id}>"
         return s
+
+    @hybrid_property
+    def standardized_employee_id(self):
+        """A standardized version of the employee_id attribute"""
+        return standardize_employee_id(self.employee_id)
 
     def to_pilot(self) -> Pilot:
         """Return a Pilot object from PilotRecord"""

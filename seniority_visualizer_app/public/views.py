@@ -64,6 +64,7 @@ def register():
             personal_email=form.personal_email.data,
             password=form.password.data,
             active=True,
+            employee_id=form.employee_number.data,
         )
         current_app.logger.info(f"NEW USER -> {form.username.data}")
 

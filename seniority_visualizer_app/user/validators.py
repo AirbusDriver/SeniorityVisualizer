@@ -14,6 +14,9 @@ long_company_email_regex = re.compile(long_employee_email_pattern, re.I)
 short_company_email_regex = re.compile(short_employee_email_pattern, re.I)
 
 
+# todo: employee number validator
+
+
 class EmailValidationRegexEnum(enum.Enum):
     LONG_EMAIL = long_company_email_regex
     SHORT_EMAIL = short_company_email_regex

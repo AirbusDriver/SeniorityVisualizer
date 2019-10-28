@@ -31,6 +31,7 @@ class UserFactory(BaseFactory):
     company_email = Sequence(lambda n: "test.user{0}@jetblue.com".format(n))
     password = PostGenerationMethodCall("set_password", "example")
     active = True
+    employee_id = Sequence(lambda n: n + 1)
 
     class Meta:
         """Factory configuration."""

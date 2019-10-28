@@ -5,7 +5,9 @@ See: http://webtest.readthedocs.org/
 """
 from unittest import mock
 
+import pytest
 from flask import url_for
+from webtest import TestRequest, TestResponse
 
 from seniority_visualizer_app.user.models import User
 
@@ -142,6 +144,41 @@ class TestRegistering:
         # Sees error about invalid company email
         res = form.submit()
         assert "Email is not a valid company email." in res
+
+    @pytest.mark.xfail(reason="Failing until validation deemed to be required")
+    def test_sees_error_if_employee_number_already_registered(self, db, testapp):
+        # Goes to registration page
+        res = testapp.get(url_for("public.register"))
+        # Fills out form with invalid company email
+        form = res.forms["registerForm"]
+        # Submits the form
+        form["username"] = "test"
+        form["company_email"] = "first.last@jetblue.com"
+        form["personal_email"] = "test@example.com"
+        form["password"] = "123456"
+        form["confirm"] = "123456"
+        form["employee_number"] = "12345"
+
+        res: TestResponse = res.forms["registerForm"].submit().follow()
+
+        assert User.query.filter(User.employee_id == "12345").first()
+
+        # Another user tries to register to the same employee number
+
+        res = testapp.get(url_for("public.register"))
+        # Fills out form with invalid company email
+        form = res.forms["registerForm"]
+        # Submits the form
+        form["username"] = "other"
+        form["company_email"] = "other.user@jetblue.com"
+        form["personal_email"] = "other@example.com"
+        form["password"] = "123456"
+        form["confirm"] = "123456"
+        form["employee_number"] = "12345"
+
+        res: TestResponse = res.forms["registerForm"].submit()
+
+        res.mustcontain("Employee Number already registered")
 
 
 class TestRegistration:
