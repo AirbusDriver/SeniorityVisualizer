@@ -1,8 +1,8 @@
 import threading
 
-from flask import render_template, url_for, current_app
+from flask import current_app, render_template, url_for
 from flask_mail import Message
-from itsdangerous import jws, TimedJSONWebSignatureSerializer
+from itsdangerous import TimedJSONWebSignatureSerializer, jws
 
 from seniority_visualizer_app.extensions import mail
 

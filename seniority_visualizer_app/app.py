@@ -5,7 +5,7 @@ import sys
 
 from flask import Flask, render_template
 
-from seniority_visualizer_app import commands, public, user
+from seniority_visualizer_app import commands, public, seniority, user
 from seniority_visualizer_app.extensions import (
     bcrypt,
     cache,
@@ -13,9 +13,9 @@ from seniority_visualizer_app.extensions import (
     db,
     debug_toolbar,
     login_manager,
+    mail,
     migrate,
     webpack,
-    mail,
 )
 
 
@@ -54,6 +54,7 @@ def register_blueprints(app):
     """Register Flask blueprints."""
     app.register_blueprint(public.views.blueprint)
     app.register_blueprint(user.views.blueprint)
+    app.register_blueprint(seniority.views.blueprint)
     return None
 
 
@@ -97,9 +98,11 @@ def configure_logger(app):
     if not app.logger.handlers:
         app.logger.addHandler(handler)
 
+
 def register_request_hooks(app):
     @app.before_first_request
     def populate_db():
         from seniority_visualizer_app.user.role import Role
+
         app.logger.info("updating role permissions")
         Role.insert_roles()

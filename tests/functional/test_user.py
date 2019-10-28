@@ -1,9 +1,9 @@
 import pytest
-from flask import url_for
 from bs4 import BeautifulSoup
+from flask import url_for
 
-from seniority_visualizer_app.user.models import User
 from seniority_visualizer_app.app import mail
+from seniority_visualizer_app.user.models import User
 from tests.factories import UserFactory
 
 
@@ -105,6 +105,27 @@ class TestUserPasswordManagement:
         res.mustcontain(logged_in_user.personal_email)
         res.mustcontain(logged_in_user.company_email)
 
-        res = testapp.get(url_for("user.details", user_id=other_user.id), expect_errors=True)
+        res = testapp.get(
+            url_for("user.details", user_id=other_user.id), expect_errors=True
+        )
 
         assert res.status_code == 401
+
+    def test_user_can_add_employee_number_in_user_details(self, testapp, logged_in_user):
+        logged_in_user.update(employee_id=None)
+        assert logged_in_user.employee_id is None
+
+        res = testapp.get(url_for("user.details", user_id=logged_in_user.id))
+
+        form = res.forms["userDetailsForm"]
+
+        assert form["employee_number"].value == ""
+
+        form["employee_number"] = "123"
+
+        res = form.submit().maybe_follow()
+
+        form = res.forms["userDetailsForm"]
+
+        assert form["employee_number"].value == "123"
+        assert str(logged_in_user.employee_id) == "00123"

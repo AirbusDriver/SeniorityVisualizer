@@ -5,27 +5,34 @@ from typing import Optional
 
 from flask import (
     Blueprint,
-    render_template,
-    current_app,
-    redirect,
-    url_for,
-    flash,
     abort,
+    current_app,
+    flash,
+    redirect,
+    render_template,
+    url_for,
 )
-from flask_login import login_required, current_user
+from flask_login import current_user, login_required
 from itsdangerous import URLSafeTimedSerializer
-from itsdangerous.exc import SignatureExpired, BadSignature
-from sqlalchemy.exc import IntegrityError
+from itsdangerous.exc import BadSignature, SignatureExpired
 from sqlalchemy import func
+from sqlalchemy.exc import IntegrityError
+
+from seniority_visualizer_app.decorators import permissions_required
+from seniority_visualizer_app.user.role import Permissions
+from seniority_visualizer_app.utils import flash_errors
+
+from .email import compare_emails, send_password_reset_token
+from .forms import (
+    ChangePasswordForm,
+    PasswordResetForm,
+    SendPasswordResetForm,
+    UserDetailsForm,
+)
+from .models import User
 
 blueprint = Blueprint("user", __name__, url_prefix="/users", static_folder="../static")
 
-from .models import User
-from .email import compare_emails, send_password_reset_token
-from .forms import UserDetailsForm, SendPasswordResetForm, ChangePasswordForm, PasswordResetForm
-from seniority_visualizer_app.utils import flash_errors
-from seniority_visualizer_app.decorators import permissions_required
-from seniority_visualizer_app.user.role import Permissions
 
 PASSWORD_RESET_MAX_AGE = 3600
 
@@ -51,9 +58,7 @@ def parse_token_into_user_id(token, max_age=3600) -> Optional[User]:
 
 @blueprint.route("/")
 @login_required
-@permissions_required(
-    Permissions.VIEW_USERS
-)
+@permissions_required(Permissions.VIEW_USERS)
 def members():
     """List members."""
     return render_template("users/members.html")
@@ -97,9 +102,7 @@ def confirm_user(token):
 
 @blueprint.route("/details/<int:user_id>", methods=["GET", "POST"])
 @login_required
-@permissions_required(
-    Permissions.VIEW_USER_DETAILS
-)
+@permissions_required(Permissions.VIEW_USER_DETAILS)
 def details(user_id):
     user: User = User.get_by_id(user_id)
 
@@ -111,6 +114,7 @@ def details(user_id):
         username=user.username,
         company_email=user.company_email,
         personal_email=user.personal_email,
+        employee_number=user.employee_id,
     )
 
     current_app.logger.debug(pformat(vars(user)))
@@ -120,7 +124,8 @@ def details(user_id):
             user.username = form.username.data.strip()
             user.company_email = form.company_email.data.strip()
             user.personal_email = form.personal_email.data.strip()
-            user.update(commit=True)
+            user.employee_id = form.employee_number.data.strip()
+            user.save(commit=True)
         except IntegrityError:
             current_app.logger.exception(f"IN -> user.views.details...\n" f"{user}")
             flash("INTEGRITY ERROR!! Error logged.")
@@ -186,9 +191,7 @@ def reset_password(token):
             user.set_password(new_password)
             user.save(commit=True)
 
-            current_app.logger.info(
-                f"USER: {user.id} changed password"
-            )
+            current_app.logger.info(f"USER: {user.id} changed password")
 
             flash(
                 "You have successfully changed your password. You may now log in.",
@@ -220,7 +223,9 @@ def forgot_password():
     if password_reset_form.validate_on_submit():
         input_email = password_reset_form.personal_email.data
 
-        user = User.query.filter(func.lower(User.personal_email) == input_email.lower()).first()
+        user = User.query.filter(
+            func.lower(User.personal_email) == input_email.lower()
+        ).first()
         if user:
             current_app.logger.debug("USER FOUND")
             token = generate_password_reset_token(user)
@@ -228,7 +233,10 @@ def forgot_password():
 
             send_password_reset_token(user, User.email_categories.PERSONAL_EMAIL, url)
 
-        flash(f"An email has been sent to {input_email} with reset instructions", "success")
+        flash(
+            f"An email has been sent to {input_email} with reset instructions",
+            "success",
+        )
 
     flash_errors(password_reset_form)
     return render_template(

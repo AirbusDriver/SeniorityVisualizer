@@ -1,13 +1,13 @@
 # -*- coding: utf-8 -*-
 """Test forms."""
-import pytest
 from unittest import mock
 
+import pytest
 from wtforms import ValidationError
 
 from seniority_visualizer_app.public.forms import LoginForm
-from seniority_visualizer_app.user.models import User
 from seniority_visualizer_app.user.forms import RegisterForm
+from seniority_visualizer_app.user.models import User
 from seniority_visualizer_app.user.validators import CompanyEmail, UniqueField
 
 

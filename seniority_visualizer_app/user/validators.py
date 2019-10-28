@@ -1,8 +1,7 @@
-import re
 import enum
+import re
 
-from wtforms.validators import Email
-from wtforms.validators import ValidationError
+from wtforms.validators import Email, ValidationError
 
 EMPLOYEE_NUMBER_EMAIL_PATTERN_PREFIX = r"^\w{2,3}\d{1,5}"
 EMPLOYEE_NAME_EMAIL_PATTERN_PREFIX = r"^\S+"
@@ -13,6 +12,9 @@ short_employee_email_pattern = EMPLOYEE_NUMBER_EMAIL_PATTERN_PREFIX + HOST
 
 long_company_email_regex = re.compile(long_employee_email_pattern, re.I)
 short_company_email_regex = re.compile(short_employee_email_pattern, re.I)
+
+
+# todo: employee number validator
 
 
 class EmailValidationRegexEnum(enum.Enum):

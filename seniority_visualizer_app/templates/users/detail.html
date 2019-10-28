@@ -23,6 +23,12 @@
                 </div>
                 {{ form.personal_email(class_="form-control", disabled=True) }}
             </div>
+            <div class="input-group mb-3">
+                <div class="input-group-prepend">
+                    <span class="input-group-text">Employee Number</span>
+                </div>
+                {{ form.employee_number(class_="form-control", disabled=True) }}
+            </div>
             <button class="btn-primary btn-block" type="submit">Submit</button>
             <button class="btn-block btn-info" id="uiEditButton" type="button">Edit</button>
 
