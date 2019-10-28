@@ -3,7 +3,7 @@ import pytest
 
 from seniority_visualizer_app.seniority.models import SeniorityListRecord, PilotRecord
 from seniority_visualizer_app.seniority.views import get_pilot_records_for_employee_id
-from .factories import PilotRecordFactory, UserFactory
+from tests.factories import PilotRecordFactory, UserFactory
 
 
 class TestUserPilotRecordLookup:

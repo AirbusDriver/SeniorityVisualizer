@@ -5,15 +5,15 @@ from flask import Blueprint
 
 from .models import PilotRecord, SeniorityListRecord
 from .utils import standardize_employee_id
-from seniority_visualizer_app.user.models import User
+from seniority_visualizer_app.user.models import EmployeeID
 
 blueprint = Blueprint(
     "seniority", __name__, url_prefix="/seniority", static_folder="../static"
 )
 
 
-def get_pilot_records_for_employee_id(employee_id: Union[str, int]) -> List[PilotRecord]:
-    """Return a list of pilot records from user"""
+def get_pilot_records_for_employee_id(employee_id: Union[str, int, EmployeeID]) -> List[PilotRecord]:
+    """Return a list of pilot records from an employee id"""
     _id = standardize_employee_id(employee_id)
 
     initial = PilotRecord.query.filter(PilotRecord.employee_id.ilike(f"%{employee_id}%")).all()

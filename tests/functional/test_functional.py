@@ -11,7 +11,7 @@ from webtest import TestRequest, TestResponse
 
 from seniority_visualizer_app.user.models import User
 
-from .factories import UserFactory
+from tests.factories import UserFactory
 
 
 class TestLoggingIn:
