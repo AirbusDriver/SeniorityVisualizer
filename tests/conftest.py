@@ -9,11 +9,13 @@ from unittest import mock
 
 import pytest
 from webtest import TestApp
+from flask import url_for
 
 from seniority_visualizer_app.app import create_app
 from seniority_visualizer_app.database import db as _db
 from seniority_visualizer_app.seniority.models import PilotRecord, SeniorityListRecord
 from seniority_visualizer_app.user.role import Role
+from seniority_visualizer_app.user.models import User
 
 from .factories import UserFactory
 
@@ -109,3 +111,23 @@ def seniority_list_from_csv(db):
     db.session.commit()
 
     return sen_list
+
+
+@pytest.fixture
+def logged_in_user(testapp, user: User) -> User:
+    """
+    Return a user that is currently logged into the app.
+    """
+    res = testapp.get(url_for("public.home"))
+    form = res.forms["loginForm"]
+    form["username"] = user.username
+    form["password"] = "myprecious"
+
+    res = form.submit().maybe_follow()
+    assert res.status_code == 200, "user unable to log in"
+
+    yield user
+
+    user.set_password("myprecious")
+    user.save()
+    assert user.check_password("myprecious"), "password not set to original password"

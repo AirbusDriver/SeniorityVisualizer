@@ -7,26 +7,6 @@ from seniority_visualizer_app.user.models import User
 from tests.factories import UserFactory
 
 
-@pytest.fixture
-def logged_in_user(testapp, user: User) -> User:
-    """
-    Return a user that is currently logged into the app.
-    """
-    res = testapp.get(url_for("public.home"))
-    form = res.forms["loginForm"]
-    form["username"] = user.username
-    form["password"] = "myprecious"
-
-    res = form.submit().maybe_follow()
-    assert res.status_code == 200, "user unable to log in"
-
-    yield user
-
-    user.set_password("myprecious")
-    user.save()
-    assert user.check_password("myprecious"), "password not set to original password"
-
-
 class TestUserPasswordManagement:
     def test_user_can_change_password(self, testapp, logged_in_user):
         """
