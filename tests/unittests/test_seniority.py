@@ -254,3 +254,10 @@ class TestSeniorityListRecordSeniorityListIntegration:
         ) == set(
             p.literal_seniority_number for p in sen_list_record.pilots
         )
+
+    def test_to_df(self, seniority_list_from_csv):
+        sen_list_record = seniority_list_from_csv
+
+        df = sen_list_record.to_df()
+
+        assert len(df) == len(sen_list_record.pilots)

@@ -5,8 +5,10 @@ from __future__ import annotations
 
 from datetime import date, datetime
 from typing import Any, Dict, Iterable, Iterator, Optional, Union, List
+from collections import OrderedDict
 
-from sqlalchemy.ext.hybrid import hybrid_property, hybrid_method
+from sqlalchemy.ext.hybrid import hybrid_property
+import pandas as pd
 
 from .utils import standardize_employee_id
 from seniority_visualizer_app.database import (
@@ -43,6 +45,25 @@ class SeniorityListRecord(Model, SurrogatePK):
         sen_list = SeniorityList(pilots)
 
         return sen_list
+
+    def to_df(self, **kwargs) -> pd.DataFrame:
+        """
+        Return a DataFrame from the SeniorityListRecord
+
+        :param kwargs: see :func:`pd.DataFrame.__init__()` **kwargs
+        :return: DataFrame from pilot records
+        """
+        df = pd.DataFrame(
+            (p.to_dict() for p in self.pilots),
+            **kwargs
+        )
+        return df
+
+    def to_dict(self):
+        """
+        Return a list of dicts of each PilotRecord in object
+        """
+        return [p.to_dict() for p in self.pilots]
 
 
 class PilotRecord(Model, SurrogatePK):
@@ -95,23 +116,25 @@ class PilotRecord(Model, SurrogatePK):
 
         return cls(**out)
 
-    def to_dict(self):
+    def to_dict(self) -> OrderedDict:
         """
-        Return a dict of pilot record information
+        Return an OrderedDict of pilot record information
         """
         dict_keys = [
             "employee_id",
+            "literal_seniority_number",
             "seniority_list_id",
             "hire_date",
             "retire_date",
-            "literal_seniority_number",
             "first_name",
             "last_name",
             "base",
             "seat",
             "aircraft",
         ]
-        return {k: getattr(self, k, None) for k in dict_keys}
+        out = OrderedDict({k: getattr(self, k, None) for k in dict_keys})
+        out["employee_id"] = standardize_employee_id(self.employee_id)
+        return out
 
 
 class Pilot:
@@ -197,6 +220,17 @@ class Pilot:
 
         return cls(**init_dict)
 
+    def to_dict(self):
+        """
+        Return a dict representation of pilot data.
+        """
+        return {
+            "employee_id": self.employee_id,
+            "hire_date": self.hire_date,
+            "retire_date": self.retire_date,
+            "seniority_number": self.literal_seniority_number
+        }
+
     # todo: add strategies
     def is_senior_to(self, other: Pilot) -> bool:
         """
@@ -257,6 +291,14 @@ class SeniorityList:
 
     def __len__(self):
         return len(self._pilots)
+
+    def to_df(self, df_kwargs: Optional[Dict[str, Any]] = None):
+        """Return a Pandas Dataframe of pilot info"""
+        df_kwargs = df_kwargs or {}
+        df = pd.DataFrame([p.to_dict() for p in self._pilots], **df_kwargs)
+        df.hire_date = pd.to_datetime(df.hire_date)
+        df.retire_date = pd.to_datetime(df.retire_date)
+        return df
 
     @property
     def pilot_data(self):

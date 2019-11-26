@@ -33,6 +33,7 @@ Flask-DebugToolbar = "==0.10.1"
 environs = "==6.0.0"
 flask-mail = "*"
 dateutils = "*"
+pandas = "*"
 
 [dev-packages]
 # Testing
@@ -52,4 +53,3 @@ pep8-naming = "==0.8.2"
 faker = "*"
 pytest-bdd = "*"
 mypy = "*"
-
