@@ -2,8 +2,13 @@ from pathlib import Path
 from datetime import datetime, timezone
 import csv
 from typing import Union
+from flask import url_for
+
 
 from seniority_visualizer_app.seniority.models import SeniorityListRecord, PilotRecord
+
+TESTS_BASE_DIR = Path(__file__).parent
+SAMPLE_CSV = TESTS_BASE_DIR.joinpath("sample.csv")
 
 
 def make_seniority_list_from_csv(sample_csv_path: Union[str, Path]):
@@ -34,3 +39,15 @@ def make_seniority_list_from_csv(sample_csv_path: Union[str, Path]):
             pilot_records.append(record)
 
     return sen_list, pilot_records
+
+
+def log_user_in(user, password, app):
+    res = app.get(url_for("public.home"))
+    form = res.forms["loginForm"]
+    form["username"] = user.username
+    form["password"] = password
+
+    res = form.submit().maybe_follow()
+    assert res.status_code == 200, "user unable to log in"
+
+    return user
