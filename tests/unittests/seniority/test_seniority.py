@@ -2,8 +2,6 @@ from datetime import date, datetime, timedelta
 from random import shuffle
 from typing import List
 
-import pytest
-
 from seniority_visualizer_app.seniority.models import (
     Pilot,
     PilotRecord,
@@ -11,48 +9,6 @@ from seniority_visualizer_app.seniority.models import (
     SeniorityListRecord,
 )
 from tests.factories import PilotFactory, PilotRecordFactory
-
-
-@pytest.fixture
-def populated_seniority_list(db):
-    """
-    Return a SeniorityListRecord with 100 PilotRecords added to it
-    """
-    published = datetime.utcnow()
-    seniority_list = SeniorityListRecord(published, company_name="TestingAir")
-
-    pilot_records = PilotRecordFactory.build_batch(100)
-
-    pilot_records.sort(key=lambda p: (p.hire_date, p.retire_date))
-
-    for i, pilot_rec in enumerate(pilot_records):
-        pilot_rec.literal_seniority_number = i + 1
-        pilot_rec.seniority_list = seniority_list
-
-    db.session.add_all(pilot_records)
-    db.session.commit()
-
-    yield seniority_list
-
-    PilotRecordFactory.reset_sequence()
-
-
-def test_populated_seniority_list_fixture(populated_seniority_list):
-    """Verify populated_seniority_list fixture_behaving predictably."""
-    pilots = populated_seniority_list.pilots
-
-    assert len(pilots) == 100
-
-    for a, b in zip(pilots[:-1], pilots[1:]):
-        assert a.hire_date <= b.hire_date and a.retire_date <= b.retire_date
-        assert a.seniority_list.id == populated_seniority_list.id == 1
-
-
-def test_seniority_list_from_csv_fixture(seniority_list_from_csv):
-    """Verify seniority_list_from_csv fixture behaving predictably."""
-    sen_list_record = seniority_list_from_csv
-
-    assert len(sen_list_record.pilots) == 3925
 
 
 class TestSeniorityListRecord:
