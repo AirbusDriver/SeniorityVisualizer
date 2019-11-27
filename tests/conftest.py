@@ -18,6 +18,7 @@ from seniority_visualizer_app.user.role import Role
 from seniority_visualizer_app.user.models import User
 
 from .factories import UserFactory
+from .utils import make_seniority_list_from_csv
 
 
 @pytest.fixture("session")
@@ -85,27 +86,7 @@ def seniority_list_from_csv(db):
     sample_csv_path = Path(__file__).parent.joinpath("sample.csv")
     assert sample_csv_path.exists()
 
-    sen_list = SeniorityListRecord(
-        published_date=datetime(2000, 1, 1, tzinfo=timezone.utc)
-    )
-    records = []
-
-    with open(sample_csv_path) as infile:
-        reader = csv.DictReader(infile)
-
-        for row in reader:
-            record = PilotRecord(
-                employee_id=row["cmid"].zfill(5),
-                seniority_list=sen_list,
-                hire_date=datetime.strptime(row["hire_date"], "%Y-%m-%d"),
-                retire_date=datetime.strptime(row["retire_date"], "%Y-%m-%d"),
-                literal_seniority_number=int(row["seniority_number"]),
-                first_name=row["first_name"],
-                last_name=row["last_name"],
-                base=row["base"],
-                aircraft=row["fleet"],
-                seat=row["seat"],
-            )
+    sen_list, records = make_seniority_list_from_csv(sample_csv_path)
     db.session.add_all(records)
     db.session.add(sen_list)
     db.session.commit()
