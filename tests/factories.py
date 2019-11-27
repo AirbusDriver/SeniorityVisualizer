@@ -9,7 +9,8 @@ from factory.faker import Faker
 from factory.fuzzy import FuzzyChoice, FuzzyDateTime
 
 from seniority_visualizer_app.database import db
-from seniority_visualizer_app.seniority.models import Pilot, PilotRecord
+from seniority_visualizer_app.seniority.models import PilotRecord
+from seniority_visualizer_app.seniority.entities import Pilot
 from seniority_visualizer_app.user.models import User
 
 
