@@ -3,12 +3,14 @@ from typing import Optional, Iterator, Tuple, Union
 from dateutil.relativedelta import relativedelta
 import logging
 
-from .models import SeniorityList, Pilot
+from seniority_visualizer_app.seniority.entities import Pilot, SeniorityList
+from . import data_objects as do
+from .exceptions import CalculationError
 
 logger = logging.getLogger(__name__)
 
 
-def calculate_seniority_list_span(sen_list: SeniorityList):
+def calculate_seniority_list_span(sen_list: SeniorityList) -> do.SeniorityListSpan:
     """Return the earliest hire date and latest retire date from a SeniorityList"""
     min_hire_date = None
     max_retire_date = None
@@ -19,7 +21,12 @@ def calculate_seniority_list_span(sen_list: SeniorityList):
         if not max_retire_date or p.retire_date > max_retire_date:
             max_retire_date = p.retire_date
 
-    return min_hire_date, max_retire_date
+    if not (min_hire_date is not None and max_retire_date is not None):
+        raise CalculationError(f"no min/max could be deterived from {sen_list}")
+
+    return do.SeniorityListSpan(
+        earliest_hire=min_hire_date, latest_retire=max_retire_date
+    )
 
 
 def iter_seniority_over_time(
@@ -39,31 +46,33 @@ def iter_seniority_over_time(
     :param delta: interval expressed as a :py:func:`relativedelta`
     """
 
-    min_hire, max_retire = calculate_seniority_list_span(sen_list)
+    span = calculate_seniority_list_span(sen_list)
 
     if isinstance(start, datetime):
         explicit_start = start.date()
     elif start is None:
-        explicit_start = min_hire
+        explicit_start = span.earliest_hire
     else:
         explicit_start = start
 
     if isinstance(end, datetime):
         explicit_end = end.date()
     elif end is None:
-        explicit_end = max_retire
+        explicit_end = span.latest_retire
     else:
         explicit_end = end
 
     if not explicit_start < explicit_end:
         raise ValueError("somehow start >= end")
 
-    target_pilot = pilot
-
-    if pilot not in sen_list.pilot_data:
-        raise ValueError(f"{pilot} not in {sen_list}")
-
     starting_pilots = sorted(sen_list.pilot_data)
+
+    for p in starting_pilots:
+        if p.employee_id == pilot.employee_id:
+            target_pilot = p
+            break
+    else:
+        raise ValueError(f"{pilot} not in {sen_list}")
 
     date_index = explicit_start
     stop = explicit_end
@@ -83,3 +92,20 @@ def iter_seniority_over_time(
         date_index += delta
 
         current_pilots = [p for p in starting_pilots if p.is_active_on(date_index)]
+
+
+def calculate_pilot_seniority_statistics(
+    pilot: Pilot, seniority_list: SeniorityList
+) -> do.PilotSeniorityStatistics:
+    """Return a `PilotSeniorityStatistics` data object"""
+
+    seniority = seniority_list.lookup_pilot_seniority_number(pilot)
+
+    statistics = do.PilotSeniorityStatistics(
+        current_seniority_number=seniority,
+        hire_date=pilot.hire_date,
+        retire_date=pilot.retire_date,
+        employee_id=pilot.employee_id,
+    )
+
+    return statistics
