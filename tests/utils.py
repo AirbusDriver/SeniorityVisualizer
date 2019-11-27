@@ -5,10 +5,11 @@ from typing import Union
 from flask import url_for
 
 
-from seniority_visualizer_app.seniority.models import SeniorityListRecord, PilotRecord
-
 TESTS_BASE_DIR = Path(__file__).parent
 SAMPLE_CSV = TESTS_BASE_DIR.joinpath("sample.csv")
+
+
+from seniority_visualizer_app.seniority.models import SeniorityListRecord, PilotRecord
 
 
 def make_seniority_list_from_csv(sample_csv_path: Union[str, Path]):
