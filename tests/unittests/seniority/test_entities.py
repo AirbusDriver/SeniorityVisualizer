@@ -1,8 +1,12 @@
 from datetime import date, timedelta, datetime
 from random import shuffle
 from typing import List
+from unittest import mock
+
+import pytest
 
 from seniority_visualizer_app.seniority.entities import Pilot, SeniorityList
+from seniority_visualizer_app.seniority.exceptions import SeniorityListError
 from tests.factories import PilotFactory
 
 
@@ -147,7 +151,8 @@ class TestSeniorityList:
 
         assert len(set(sen_list.filter_active_on(date(2060, 1, 1)))) == 0
 
-    def test_pilot_in(self):
+    def test_get_pilot_index(self):
+        """Test contains and _get_pilot_index"""
         pilots: List[Pilot] = PilotFactory.build_batch(100)
 
         sen_list = SeniorityList(pilots)
@@ -157,8 +162,47 @@ class TestSeniorityList:
         from_dict = Pilot(
             employee_id=target.employee_id,
             hire_date=target.hire_date,
-            retire_date=target.retire_date
+            retire_date=target.retire_date,
         )
 
-        assert sen_list._get_pilot_index(target) == 50 == sen_list._get_pilot_index(from_dict)
+        assert (
+            sen_list._get_pilot_index(target, sen_list.pilot_data)
+            == 50
+            == sen_list._get_pilot_index(from_dict, sen_list.pilot_data)
+        )
 
+        assert target in sen_list
+
+        with pytest.raises(ValueError):
+            bad_pilot = mock.Mock(spec=Pilot)
+
+            idx = sen_list._get_pilot_index(bad_pilot, sen_list.pilot_data)
+
+        assert bad_pilot not in sen_list
+
+    def test_lookup_pilot_seniority_number(self):
+
+        pilot_sen = {i: p for i, p in enumerate(PilotFactory.build_batch(100), 1)}
+
+        data = list(pilot_sen.values())
+        shuffle(data)
+
+        sen_list = SeniorityList(
+            data
+        )
+
+        assert 1 == sen_list.lookup_pilot_seniority_number(pilot_sen[1])
+        assert 100 == sen_list.lookup_pilot_seniority_number(pilot_sen[100])
+
+        with pytest.raises(SeniorityListError):
+            mock_pilot = mock.Mock(spec=Pilot)
+
+            sen_list.lookup_pilot_seniority_number(mock_pilot)
+
+        for i, pilot in pilot_sen.items():
+            if i <= 50:
+                pilot.is_active_on = mock.Mock(return_value=False)
+            else:
+                pilot.is_active_on = mock.Mock(return_value=True)
+
+        assert sen_list.lookup_pilot_seniority_number(pilot_sen[51], date_=date(2050, 1, 1)) == 1

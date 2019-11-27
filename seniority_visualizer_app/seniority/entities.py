@@ -99,7 +99,7 @@ class Pilot:
             "employee_id": self.employee_id,
             "hire_date": self.hire_date,
             "retire_date": self.retire_date,
-            "seniority_number": self.literal_seniority_number
+            "seniority_number": self.literal_seniority_number,
         }
 
     # todo: add strategies
@@ -163,6 +163,12 @@ class SeniorityList:
     def __len__(self):
         return len(self._pilots)
 
+    def __contains__(self, item):
+        try:
+            return self._get_pilot_index(item, self.pilot_data)
+        except ValueError:
+            return False
+
     # todo: extract to serializer
     def to_df(self, df_kwargs: Optional[Dict[str, Any]] = None):
         """Return a Pandas Dataframe of pilot info"""
@@ -205,19 +211,30 @@ class SeniorityList:
             ref = ref.date()
         return (p for p in self.sorted_pilot_data if p.is_active_on(ref))
 
-    def lookup_pilot_seniority_number(self, pilot: Pilot, date_: Optional[Union[date, datetime]] = None) -> int:
+    def lookup_pilot_seniority_number(
+        self, pilot: Pilot, date_: Optional[Union[date, datetime]] = None
+    ) -> int:
         """
         Return the seniority number of a pilot (1-indexed) within a seniority list. If the pilot is
         not present in the seniority list, raise SeniorityListError
 
-        :param pilot:
-        :param date_:
-        :return:
-        """
-        pass
+        :raises SeniorityListError: pilot not a member of seniority list
 
-    def _get_pilot_index(self, pilot: Pilot) -> int:
-        for i, p in enumerate(self.sorted_pilot_data):
-            if p == pilot:
-                return i
-        raise IndexError(f"{pilot} not in seniority list")
+        :param pilot: pilot to check
+        :param date_: get seniority number as of date
+        """
+        if date_:
+            data = self.filter_active_on(date_)
+        else:
+            data = iter(self.sorted_pilot_data)
+
+        try:
+            idx = self._get_pilot_index(pilot, data)
+            return idx + 1
+        except ValueError:
+            raise SeniorityListError(f"{pilot} not in {self}")
+
+    @staticmethod
+    def _get_pilot_index(pilot: Pilot, data: Iterable[Pilot]) -> int:
+        """Get the index of a pilot in a list of pilot data"""
+        return sorted(data).index(pilot)
