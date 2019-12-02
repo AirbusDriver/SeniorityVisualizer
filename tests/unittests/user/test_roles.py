@@ -34,7 +34,7 @@ class TestBinaryMappedAutoEnum:
 
 
 class TestRoles:
-    def test_admin_role(self, db):
+    def test_admin_role(self, clean_db):
         admin = Role.query.filter(Role.name == "Admin").first()
 
         assert admin, "Admin not in db"
@@ -42,7 +42,7 @@ class TestRoles:
         for permission in Permissions:
             assert admin.has_permission(permission)
 
-    def test_unconfirmed_user_role(self, db):
+    def test_unconfirmed_user_role(self, clean_db):
         unconfirmed = Role.query.filter(Role.name == "UnconfirmedUser").first()
 
         p = Permissions  # alias
@@ -62,12 +62,12 @@ class TestRoles:
 
         assert unconfirmed, "UnconfirmedUser not in db"
 
-    def test_confirmed_user_role(self, db):
+    def test_confirmed_user_role(self, clean_db):
         confirmed = Role.query.filter(Role.name == "ConfirmedUser").first()
 
         assert confirmed, "ConfirmedUser not in db"
 
-    def test_flask_admin_created_with_admin_role(self, db, app):
+    def test_flask_admin_created_with_admin_role(self, clean_db, app):
         admin_email = "supah_usah@example.com"
 
         app.config["FLASK_ADMIN"] = admin_email

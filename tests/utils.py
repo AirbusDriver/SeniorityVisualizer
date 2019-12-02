@@ -1,7 +1,7 @@
 from pathlib import Path
 from datetime import datetime, timezone
 import csv
-from typing import Union
+from typing import Union, Tuple, Dict
 from flask import url_for
 
 
@@ -12,11 +12,8 @@ SAMPLE_CSV = TESTS_BASE_DIR.joinpath("sample.csv")
 from seniority_visualizer_app.seniority.models import SeniorityListRecord, PilotRecord
 
 
-def make_seniority_list_from_csv(sample_csv_path: Union[str, Path]):
-    sen_list = SeniorityListRecord(
-        published_date=datetime(2019, 7, 1, tzinfo=timezone.utc)
-    )
-    pilot_records = []
+def make_pilot_dicts_from_csv(sample_csv_path: Union[str, Path]) -> Tuple[Dict]:
+    pilot_dicts = []
 
     if not isinstance(sample_csv_path, str):
         sample_csv_path = str(sample_csv_path)
@@ -25,9 +22,8 @@ def make_seniority_list_from_csv(sample_csv_path: Union[str, Path]):
         reader = csv.DictReader(infile)
 
         for row in reader:
-            record = PilotRecord(
+            pilot_dicts.append(dict(
                 employee_id=row["cmid"].zfill(5),
-                seniority_list=sen_list,
                 hire_date=datetime.strptime(row["hire_date"], "%Y-%m-%d"),
                 retire_date=datetime.strptime(row["retire_date"], "%Y-%m-%d"),
                 literal_seniority_number=int(row["seniority_number"]),
@@ -36,10 +32,9 @@ def make_seniority_list_from_csv(sample_csv_path: Union[str, Path]):
                 base=row["base"],
                 aircraft=row["fleet"],
                 seat=row["seat"],
-            )
-            pilot_records.append(record)
+            ))
 
-    return sen_list, pilot_records
+    return pilot_dicts
 
 
 def log_user_in(user, password, app):

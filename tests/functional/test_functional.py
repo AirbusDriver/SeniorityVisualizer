@@ -146,7 +146,7 @@ class TestRegistering:
         assert "Email is not a valid company email." in res
 
     @pytest.mark.xfail(reason="Failing until validation deemed to be required")
-    def test_sees_error_if_employee_number_already_registered(self, db, testapp):
+    def test_sees_error_if_employee_number_already_registered(self, clean_db, testapp):
         # Goes to registration page
         res = testapp.get(url_for("public.register"))
         # Fills out form with invalid company email
@@ -221,7 +221,7 @@ class TestRegistration:
         assert user.company_email_confirmed
 
     @mock.patch("seniority_visualizer_app.public.views.send_confirmation_email")
-    def test_email_sent_alert_shown(self, mock_send, db, testapp):
+    def test_email_sent_alert_shown(self, mock_send, clean_db, testapp):
         form = testapp.get(url_for("public.register")).forms["registerForm"]
 
         form["username"] = "TestUser"
@@ -235,7 +235,7 @@ class TestRegistration:
         res.mustcontain("You must confirm both emails within the next hour!")
 
     @mock.patch("seniority_visualizer_app.public.views.send_confirmation_email")
-    def test_email_sent_on_signup(self, patch_conf_email, db, testapp):
+    def test_email_sent_on_signup(self, patch_conf_email, clean_db, testapp):
         form = testapp.get(url_for("public.register")).forms["registerForm"]
 
         form["username"] = "TestUser"

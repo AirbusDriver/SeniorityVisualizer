@@ -9,12 +9,12 @@ from seniority_visualizer_app.user.role import Permissions
 
 
 class TestPermissions:
-    def test_non_confirmed_user_shown_401(self, logged_in_user, testapp, seniority_list_from_csv):
+    def test_non_confirmed_user_shown_401(self, logged_in_user, testapp):
         """
         A user without VIEW_SENIORITY_DATA should be shown 401 when attempting
         access to seniority endpoints.
         """
-        seniority_list_from_csv.save()
+
         assert not logged_in_user.role.has_permission(
             Permissions.VIEW_SENIORITY_DATA
         )

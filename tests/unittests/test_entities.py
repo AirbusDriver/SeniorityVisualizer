@@ -5,6 +5,7 @@ from typing import List
 from seniority_visualizer_app.seniority.entities import Pilot, SeniorityList
 from tests.factories import PilotFactory
 
+# todo: combine into tests/seniority/test_entities.py
 
 class TestPilot:
     def test_pilot_is_senior_to(self):
@@ -160,5 +161,5 @@ class TestSeniorityList:
             retire_date=target.retire_date
         )
 
-        assert sen_list._get_pilot_index(target) == 50 == sen_list._get_pilot_index(from_dict)
+        assert sen_list._get_pilot_index(target, sen_list.pilot_data) == 50 == sen_list._get_pilot_index(from_dict, sen_list.pilot_data)
 

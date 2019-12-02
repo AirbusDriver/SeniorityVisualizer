@@ -7,7 +7,7 @@ from tests.factories import PilotRecordFactory, UserFactory
 
 
 class TestUserPilotRecordLookup:
-    def test_user_can_find_pilot_records(self, db):
+    def test_user_can_find_pilot_records(self, clean_db):
         sen_list_1 = SeniorityListRecord(datetime.now())
         sen_list_2 = SeniorityListRecord(datetime.now() + timedelta(days=1))
 
@@ -44,8 +44,8 @@ class TestPilotRecordPilotIntegration:
 
 
 class TestSeniorityListRecordSeniorityListIntegration:
-    def test_to_seniority_list(self, seniority_list_from_csv):
-        sen_list_record = seniority_list_from_csv
+    def test_to_seniority_list(self, csv_senlist_pilot_records):
+        sen_list_record, _ = csv_senlist_pilot_records
 
         sen_list = sen_list_record.to_seniority_list()
 
@@ -56,8 +56,8 @@ class TestSeniorityListRecordSeniorityListIntegration:
             p.literal_seniority_number for p in sen_list_record.pilots
         )
 
-    def test_to_df(self, seniority_list_from_csv):
-        sen_list_record = seniority_list_from_csv
+    def test_to_df(self, csv_senlist_pilot_records):
+        sen_list_record, _ = csv_senlist_pilot_records
 
         df = sen_list_record.to_df()
 
