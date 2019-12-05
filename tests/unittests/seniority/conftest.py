@@ -7,7 +7,7 @@ from tests.factories import PilotRecordFactory
 
 
 @pytest.fixture
-def populated_seniority_list(db):
+def populated_seniority_list(clean_db):
     """
     Return a SeniorityListRecord with 100 PilotRecords added to it
     """
@@ -22,8 +22,8 @@ def populated_seniority_list(db):
         pilot_rec.literal_seniority_number = i + 1
         pilot_rec.seniority_list = seniority_list
 
-    db.session.add_all(pilot_records)
-    db.session.commit()
+    clean_db.session.add_all(pilot_records)
+    clean_db.session.commit()
 
     yield seniority_list
 

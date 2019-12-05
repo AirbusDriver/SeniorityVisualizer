@@ -40,7 +40,7 @@ class TestRegisterForm:
         assert form.validate() is False
         assert "Email already registered" in form.personal_email.errors
 
-    def test_validate_success(self, db):
+    def test_validate_success(self, clean_db):
         """Register with success."""
         form = RegisterForm(
             username="newusername",
@@ -63,7 +63,7 @@ class TestLoginForm:
         assert form.validate() is True
         assert form.user == user
 
-    def test_validate_unknown_username(self, db):
+    def test_validate_unknown_username(self, clean_db):
         """Unknown username."""
         form = LoginForm(username="unknown", password="example")
         assert form.validate() is False

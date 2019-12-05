@@ -10,7 +10,7 @@ from seniority_visualizer_app.user.role import Role
 from .factories import UserFactory
 
 
-@pytest.mark.usefixtures("db")
+@pytest.mark.usefixtures("clean_db")
 class TestUser:
     """User tests."""
 
@@ -35,10 +35,10 @@ class TestUser:
         user.save()
         assert user.password is None
 
-    def test_factory(self, db):
+    def test_factory(self, clean_db):
         """Test user factory."""
         user = UserFactory(password="myprecious")
-        db.session.commit()
+        clean_db.session.commit()
         assert bool(user.username)
         assert bool(user.personal_email)
         assert bool(user.company_email)
@@ -54,12 +54,12 @@ class TestUser:
             ("thomas.jefferson@example.com", "Thomas.Jefferson@example.com"),
         ],
     )
-    def test_filter_by_email_case_insensitive(self, inp_email, query_email, db):
+    def test_filter_by_email_case_insensitive(self, inp_email, query_email, clean_db):
         """User email lookups """
         user = UserFactory(company_email=inp_email)
 
         user.save()
-        db.session.commit()
+        clean_db.session.commit()
 
         retrieved = User.get_by_email(
             User.company_email, query_email, case_insensitive=True
@@ -74,12 +74,12 @@ class TestUser:
             ("THOMAS.jefferson@example.com", "thomas.jefferson@example.com", False),
         ],
     )
-    def test_filter_by_email_case_sensitive(self, inp_email, query_email, match, db):
+    def test_filter_by_email_case_sensitive(self, inp_email, query_email, match, clean_db):
         """User email lookups """
         user = UserFactory(company_email=inp_email)
 
         user.save()
-        db.session.commit()
+        clean_db.session.commit()
 
         retrieved = User.get_by_email(
             User.company_email, query_email, case_insensitive=False

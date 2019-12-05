@@ -3,21 +3,14 @@ from pathlib import Path
 
 import pytest
 
-from tests.utils import make_seniority_list_from_csv, SAMPLE_CSV
-
 from seniority_visualizer_app.seniority import statistics as stat
 from seniority_visualizer_app.seniority import data_objects as do
+from seniority_visualizer_app.seniority.entities import Pilot, SeniorityList
 
 
-@pytest.fixture(scope="module")
-def sen_list():
-    return make_seniority_list_from_csv(SAMPLE_CSV)
-
-
-def test_calculate_pilot_seniority_status(sen_list):
-    sen_list_rec, pilot_recs = sen_list
-
-    sen_list = sen_list_rec.to_seniority_list()
+def test_calculate_pilot_seniority_status(pilot_dicts_from_csv):
+    pilots = (Pilot.from_dict(d) for d in pilot_dicts_from_csv)
+    sen_list = SeniorityList(pilots)
 
     pilot_1 = sen_list.sorted_pilot_data[0]
 
