@@ -80,13 +80,12 @@ def session_db(app):
 def clean_db(session_db):
     """Create database for the tests."""
     _db = session_db
-    _db.drop_all()
 
     init_db(_db)
 
     yield _db
 
-    _db.session.rollback()
+    _db.session.remove()
     _db.drop_all()
 
 
@@ -111,7 +110,7 @@ def pilot_dicts_from_csv():
 # todo: rescope to module level
 @pytest.fixture
 def csv_senlist_pilot_records(
-        clean_db, pilot_dicts_from_csv
+    clean_db, pilot_dicts_from_csv
 ) -> Tuple[SeniorityListRecord, List[PilotRecord]]:
     """
     Return Tuple[SeniorityListRecord, List[PilotRecord]]. If the records are needed, they can be saved to `clean_db`
