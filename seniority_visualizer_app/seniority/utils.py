@@ -1,6 +1,6 @@
 from typing import Union, List, Callable
 
-from seniority_visualizer_app.user.models import EmployeeID
+from seniority_visualizer_app.shared.entities import EmployeeID
 
 
 def standardize_employee_id(employee_id: Union[int, str, EmployeeID]) -> str:
