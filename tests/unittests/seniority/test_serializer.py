@@ -41,3 +41,20 @@ class TestPilotSerializer:
         serialized = serializer.PilotSerializer().to_dict(pilot)
 
         assert serialized == exp
+
+
+class TestSeniorityListSerializer:
+    def test_to_dict(self):
+        PilotFactory.reset_sequence()
+
+        pilots = PilotFactory.build_batch(100)
+
+        sen_list = SeniorityList(pilots=pilots, published_date="2000-1-15")
+
+        sen_serializer = serializer.SeniorityListSerializer()
+
+        serialized = sen_serializer.to_dict(sen_list)
+
+        assert list(serialized.keys()) == ["pilots", "published_date"]
+        assert len(serialized["pilots"]) == 100
+        assert serialized["published_date"] == dt.date(2000, 1, 15)

@@ -7,8 +7,8 @@ from flask_login import login_required, current_user
 from .models import PilotRecord
 from .utils import standardize_employee_id
 
-from seniority_visualizer_app.user.models import EmployeeID, Permissions
-
+from seniority_visualizer_app.user.models import Permissions
+from ..shared.entities import EmployeeID
 
 blueprint = Blueprint(
     "seniority", __name__, url_prefix="/seniority", static_folder="../static"

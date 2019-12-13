@@ -3,6 +3,7 @@ from typing import Union, Optional, Dict, Any, Iterable, Iterator, List
 
 import pandas as pd
 
+from seniority_visualizer_app.utils import cast_date, DateCastable
 from .exceptions import SeniorityListError
 
 
@@ -15,13 +16,13 @@ class Pilot:
     def __init__(
         self,
         employee_id: str,
-        hire_date: Union[date, datetime],
-        retire_date: Union[date, datetime],
+        hire_date: DateCastable,
+        retire_date: DateCastable,
         literal_seniority_number: Optional[int] = None,
     ):
-        self.employee_id = employee_id
-        self._hire_date = hire_date
-        self._retire_date = retire_date
+        self.employee_id: str = employee_id
+        self.hire_date = hire_date  # type: ignore
+        self.retire_date = retire_date  # type: ignore
         self.literal_seniority_number = literal_seniority_number
 
         if not (
@@ -34,15 +35,11 @@ class Pilot:
 
     @property
     def hire_date(self) -> date:
-        if isinstance(self._hire_date, datetime):
-            return self._hire_date.date()
         return self._hire_date
 
     @hire_date.setter
-    def hire_date(self, val: Union[date, datetime]) -> None:
-        if not isinstance(val, (date, datetime)):
-            raise TypeError("val must be date or datetime")
-        self._hire_date = val
+    def hire_date(self, val: DateCastable) -> None:
+        self._hire_date = cast_date(val)
 
     @property
     def retire_date(self) -> date:
@@ -51,10 +48,8 @@ class Pilot:
         return self._retire_date
 
     @retire_date.setter
-    def retire_date(self, val: Union[date, datetime]) -> None:
-        if not isinstance(val, (date, datetime)):
-            raise TypeError("val must be date or datetime")
-        self._retire_date = val
+    def retire_date(self, val: DateCastable) -> None:
+        self._retire_date = cast_date(val)
 
     def __lt__(self, other):
         """Returns True if self.is_senior_to(other)"""
@@ -128,7 +123,7 @@ class Pilot:
                     return self_lit is not None and other_lit is None
         return False
 
-    def is_active_on(self, ref_date: Union[date, datetime, None] = None) -> bool:
+    def is_active_on(self, ref_date: Optional[DateCastable] = None) -> bool:
         """
         Return True if the pilot is active on `ref_date`. If a `ref_date` is not given,
         the system current date will be used. The pilot is considered "active" if
@@ -139,12 +134,8 @@ class Pilot:
         """
         if ref_date is None:
             _date = date.today()
-        elif isinstance(ref_date, datetime):
-            _date = ref_date.date()
         else:
-            _date = ref_date
-        if not isinstance(_date, date):
-            raise TypeError("ref_date must be of type date or datetime or None")
+            _date = cast_date(ref_date)
 
         return self.hire_date <= _date < self.retire_date
 
@@ -154,8 +145,13 @@ class SeniorityList:
     Models collection and hierarchical behaviors of individual Pilot records
     """
 
-    def __init__(self, pilots: Optional[Iterable[Pilot]] = None):
-        self._pilots = [] if pilots is None else [p for p in pilots]
+    def __init__(
+        self,
+        pilots: Optional[Iterable[Pilot]] = None,
+        published_date: Optional[DateCastable] = None,
+    ):
+        self._pilots: List[Pilot] = [] if pilots is None else [p for p in pilots]
+        self.published_date: Optional[date] = published_date  # type: ignore
 
     def __repr__(self):
         s = f"<{type(self).__name__}(len: {len(self)})>"
@@ -169,6 +165,17 @@ class SeniorityList:
             return self._get_pilot_index(item, self.pilot_data)
         except ValueError:
             return False
+
+    @property
+    def published_date(self) -> Optional[date]:
+        return self._published_date
+
+    @published_date.setter
+    def published_date(self, new_date: Optional[DateCastable]):
+        if new_date is None:
+            self._published_date = None
+            return
+        self._published_date = cast_date(new_date)
 
     # todo: extract to serializer
     def to_df(self, df_kwargs: Optional[Dict[str, Any]] = None):
@@ -198,7 +205,7 @@ class SeniorityList:
         raise AttributeError("sorted pilot data is read only")
 
     def filter_active_on(
-        self, ref_date: Union[date, datetime, None] = None
+        self, ref_date: Optional[DateCastable] = None
     ) -> Iterator[Pilot]:
         """
         Return an iterator of Pilot objects that are active on `ref_date`. If it is
@@ -207,13 +214,12 @@ class SeniorityList:
         :param ref_date: date to check pilot status against
         :return: iterator of Pilot objects
         """
-        ref = date.today() if ref_date is None else ref_date
-        if isinstance(ref, datetime):
-            ref = ref.date()
+        ref = date.today() if ref_date is None else cast_date(ref_date)
+
         return (p for p in self.sorted_pilot_data if p.is_active_on(ref))
 
     def lookup_pilot_seniority_number(
-        self, pilot: Pilot, date_: Optional[Union[date, datetime]] = None
+        self, pilot: Pilot, date_: Optional[DateCastable] = None
     ) -> int:
         """
         Return the seniority number of a pilot (1-indexed) within a seniority list. If the pilot is
@@ -224,8 +230,9 @@ class SeniorityList:
         :param pilot: pilot to check
         :param date_: get seniority number as of date
         """
-        if date_:
-            data = self.filter_active_on(date_)
+        if date_ is not None:
+            casted = cast_date(date_)
+            data = self.filter_active_on(casted)
         else:
             data = iter(self.sorted_pilot_data)
 

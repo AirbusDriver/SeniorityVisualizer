@@ -21,7 +21,7 @@ class SeniorityListSerializer(BaseSerializer):
     def to_dict(self, obj: SeniorityList) -> Dict[str, Any]:
         pilot_data = [self.pilot_serializer.to_dict(p) for p in obj.sorted_pilot_data]
 
-        return {"pilots": pilot_data}
+        return {"pilots": pilot_data, "published_date": obj.published_date}
 
 
 def get_serializer(obj: Any) -> Type[BaseSerializer]:
