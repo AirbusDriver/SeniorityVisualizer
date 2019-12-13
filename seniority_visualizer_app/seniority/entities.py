@@ -1,3 +1,4 @@
+from __future__ import annotations
 from datetime import date, datetime
 from typing import Union, Optional, Dict, Any, Iterable, Iterator, List
 
@@ -24,14 +25,6 @@ class Pilot:
         self.hire_date = hire_date  # type: ignore
         self.retire_date = retire_date  # type: ignore
         self.literal_seniority_number = literal_seniority_number
-
-        if not (
-            isinstance(hire_date, (date, datetime))
-            and isinstance(retire_date, (date, datetime))
-        ):
-            raise TypeError(
-                "'hire_date' and 'retire_date' must be of type date or datetime"
-            )
 
     @property
     def hire_date(self) -> date:
@@ -246,3 +239,10 @@ class SeniorityList:
     def _get_pilot_index(pilot: Pilot, data: Iterable[Pilot]) -> int:
         """Get the index of a pilot in a list of pilot data"""
         return sorted(data).index(pilot)
+
+    @classmethod
+    def from_dict(cls, dict_: dict) -> SeniorityList:
+        """Return a SeniorityList with from from the `SeniorityList.__init__()`"""
+        pilots = [Pilot.from_dict(p) for p in dict_["pilots"]]
+
+        return cls(pilots=pilots, published_date=dict_.get("published_date"))

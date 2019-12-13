@@ -10,6 +10,22 @@ from seniority_visualizer_app.seniority.exceptions import SeniorityListError
 from tests.factories import PilotFactory
 
 
+PILOT_DICTS = [
+    {
+        "hire_date": datetime(2020, 1, 1),
+        "retire_date": datetime(2050, 1, 1),
+        "employee_id": "12345",
+        "literal_seniority_number": 10,
+    },
+    {
+        "hire_date": date(2021, 2, 2),
+        "retire_date": "2051-2-2",
+        "employee_id": "23456",
+        "literal_seniority_number": 11,
+    },
+]
+
+
 class TestPilot:
     def test_pilot_is_senior_to(self):
         """
@@ -187,9 +203,7 @@ class TestSeniorityList:
         data = list(pilot_sen.values())
         shuffle(data)
 
-        sen_list = SeniorityList(
-            data
-        )
+        sen_list = SeniorityList(data)
 
         assert 1 == sen_list.lookup_pilot_seniority_number(pilot_sen[1])
         assert 100 == sen_list.lookup_pilot_seniority_number(pilot_sen[100])
@@ -205,4 +219,23 @@ class TestSeniorityList:
             else:
                 pilot.is_active_on = mock.Mock(return_value=True)
 
-        assert sen_list.lookup_pilot_seniority_number(pilot_sen[51], date_=date(2050, 1, 1)) == 1
+        assert (
+            sen_list.lookup_pilot_seniority_number(
+                pilot_sen[51], date_=date(2050, 1, 1)
+            )
+            == 1
+        )
+
+    def test_from_dict(self):
+        pilots = PILOT_DICTS
+
+        published = "2000-2-3"
+
+        sen_list = SeniorityList.from_dict({
+            "published_date": published,
+            "pilots": pilots
+        })
+
+        assert len(sen_list.pilot_data) == 2
+        assert sen_list.published_date == date(2000, 2, 3)
+
