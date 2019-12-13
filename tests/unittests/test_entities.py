@@ -113,13 +113,15 @@ class TestSeniorityList:
     def test_instantiation_with_pilots(self):
         pilots = PilotFactory.build_batch(50)
 
-        sen_list = SeniorityList(pilots)
+        sen_list = SeniorityList(pilots, published_date="2000-01-01")
 
         assert sen_list._pilots == pilots
         assert set(pilots) == set(sen_list._pilots)
 
         assert len(sen_list) == 50
         assert "len: 50" in repr(sen_list)
+
+        assert sen_list.published_date == date(2000, 1, 1)
 
     def test_filter_active_on(self):
         rd = date(2050, 1, 1)
