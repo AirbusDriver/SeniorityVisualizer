@@ -6,6 +6,7 @@ import pandas as pd
 from .exceptions import SeniorityListError
 
 
+# todo: sub in new employee_id entity
 class Pilot:
     """
     Models the individual pilot record interactions and states
