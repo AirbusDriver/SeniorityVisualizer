@@ -20,7 +20,7 @@ from seniority_visualizer_app.database import (
     relationship,
 )
 
-
+# todo: change datetime to date
 class SeniorityListRecord(Model, SurrogatePK):
     """
     Collection of PilotRecords.
@@ -54,10 +54,7 @@ class SeniorityListRecord(Model, SurrogatePK):
         :param kwargs: see :func:`pd.DataFrame.__init__()` **kwargs
         :return: DataFrame from pilot records
         """
-        df = pd.DataFrame(
-            (p.to_dict() for p in self.pilots),
-            **kwargs
-        )
+        df = pd.DataFrame((p.to_dict() for p in self.pilots), **kwargs)
         return df
 
     def to_dict(self):
@@ -65,6 +62,25 @@ class SeniorityListRecord(Model, SurrogatePK):
         Return a list of dicts of each PilotRecord in object
         """
         return [p.to_dict() for p in self.pilots]
+
+    # todo: implement
+    @classmethod
+    def from_entity(cls, entity: SeniorityList) -> SeniorityListRecord:
+        pilots = (PilotRecord.from_entity(pilot) for pilot in entity.pilot_data)
+
+        if entity.published_date is None:
+            use_date: date = date.today()
+        else:
+            use_date: date = entity.published_date
+
+        published_date = entity.published_date or datetime.now()
+
+        out = SeniorityListRecord(published_date=use_date)
+
+        for p in pilots:
+            p.seniority_list = out
+
+        return out
 
 
 class PilotRecord(Model, SurrogatePK):
@@ -135,4 +151,13 @@ class PilotRecord(Model, SurrogatePK):
         ]
         out = OrderedDict({k: getattr(self, k, None) for k in dict_keys})
         out["employee_id"] = standardize_employee_id(self.employee_id)
+        return out
+
+    @classmethod
+    def from_entity(cls, obj: Pilot) -> PilotRecord:
+        out = PilotRecord(
+            employee_id=str(obj.employee_id),
+            hire_date=obj.hire_date,
+            retire_date=obj.retire_date,
+        )
         return out
