@@ -1,8 +1,7 @@
-from click.testing import CliRunner
-
-
-from seniority_visualizer_app.commands import seniority_list
+from seniority_visualizer_app.commands import add
 from seniority_visualizer_app.seniority.models import SeniorityListRecord, PilotRecord
+
+from .utils import SAMPLE_CSV
 
 
 class TestSeniorityCommand:
@@ -11,6 +10,20 @@ class TestSeniorityCommand:
 
         runner = app.test_cli_runner()
 
-        result = runner.invoke(seniority_list, args=("add", ))
+        args = " ".join(
+            [
+                str(SAMPLE_CSV),
+                "-h",
+                "cmid",
+                "employee_id",
+                "-h",
+                "seniority_number",
+                "literal_seniority_number",
+                "-p",
+                "2000-01-01",
+            ]
+        )
 
-        assert 0, result.output
+        result = runner.invoke(add, args=args)
+
+        assert result.exit_code == 0

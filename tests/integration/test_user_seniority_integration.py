@@ -35,7 +35,7 @@ class TestPilotRecordPilotIntegration:
     def test_to_pilot(self):
         pilot_record = PilotRecordFactory.build()
 
-        pilot = pilot_record.to_pilot()
+        pilot = pilot_record.to_entity()
 
         assert pilot.hire_date == pilot_record.hire_date.date()
         assert pilot.retire_date == pilot_record.retire_date.date()
@@ -47,7 +47,7 @@ class TestSeniorityListRecordSeniorityListIntegration:
     def test_to_seniority_list(self, csv_senlist_pilot_records):
         sen_list_record, _ = csv_senlist_pilot_records
 
-        sen_list = sen_list_record.to_seniority_list()
+        sen_list = sen_list_record.to_entity()
 
         assert len(sen_list) == len(sen_list_record.pilots)
         assert set(

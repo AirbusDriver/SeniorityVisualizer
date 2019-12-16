@@ -3,9 +3,10 @@
 import os
 from glob import glob
 from subprocess import call
-from pprint import pformat
 
 import click
+
+from seniority_visualizer_app.seniority.commands import add
 
 HERE = os.path.abspath(os.path.dirname(__file__))
 PROJECT_ROOT = os.path.join(HERE, os.pardir)
@@ -65,68 +66,3 @@ def lint(fix_imports, check):
     execute_tool("Formatting style", "black", *black_args)
     execute_tool("Checking code style", "flake8")
 
-
-@click.group(name="seniority")
-def seniority_list():
-    """Manage seniority lists directly"""
-    pass
-
-
-"""
-Add a seniority record to the database from a tabular data file. The user can specify the path to read. The headers
-in the file should correspond to the keys required to create the new record. The headers can be overridden by 
-explicitly setting the headers. User can preview the seniority data about to be added with the --print option
-
-Errors:
-    * no file exists
-    * file can not be read
-    * file does not contain the minimum data or the headers have not been sufficiently specified to create PilotRecords
-
-
-calls:
-
-seniority add ./some/file_path.ext --valid date --header header attr --print
-"""
-
-
-@seniority_list.command()
-@click.argument("file", type=click.File(mode="r"))
-@click.option(
-    "-h",
-    "--header",
-    type=str,
-    nargs=2,
-    multiple=True,
-    help="specify column header with its mapped attr, ex -> cmid employee_id",
-)
-@click.option("--print", "echo", is_flag=True, default=False)
-def add(file, header, echo):
-    """
-    Add seniority list from csv file
-    """
-    from seniority_visualizer_app.seniority.loader import SeniorityListLoader
-    from seniority_visualizer_app.seniority.models import SeniorityListRecord
-    from seniority_visualizer_app.seniority.serializer import SeniorityListSerializer
-
-    headers = {file_key: desired for file_key, desired in header}
-
-    loader = SeniorityListLoader(headers=headers)
-
-    sen_list = loader.load_from_stream(file)
-
-    if echo:
-        data = SeniorityListSerializer().to_dict(sen_list)
-
-        def pages():
-            yield f"Published Date: {data['published_date']}"
-            yield from (
-                pformat({k: str(v) for k, v in row.items()}) + "\n"
-                for row in data["pilots"]
-            )
-
-        click.echo_via_pager(pages())
-        return None
-
-    record = SeniorityListRecord.from_entity(sen_list)
-
-    record.save()
