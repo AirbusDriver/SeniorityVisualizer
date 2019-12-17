@@ -1,23 +1,12 @@
 from __future__ import annotations
-from typing import (
-    Union,
-    List,
-    TypeVar,
-    Dict,
-    Callable,
-    Generic,
-    TYPE_CHECKING,
-    Optional,
-    Any,
-    IO,
-)
-from pathlib import Path
-import abc
+from typing import List, TypeVar, Dict, IO
+
 
 import tablib
 
 from seniority_visualizer_app.seniority.entities import Pilot, SeniorityList
 from seniority_visualizer_app.utils import cast_date
+from .exceptions import LoaderError
 
 
 T = TypeVar("T")
@@ -89,4 +78,13 @@ class SeniorityListLoader:
 
         pilots = (Pilot.from_dict(d) for d in header_swapped)
 
-        return SeniorityList(pilots=pilots, **kwargs)
+        try:
+            return SeniorityList(pilots=pilots, **kwargs)
+        except KeyError as e:
+            s = (
+                f"Could not create pilot object without key: {e}. "
+                f"Make sure the loader has appropriate headers.\n"
+                f"Headers: {self.headers}\n"
+                f"Raw Data Keys: {list(data[0].keys())}"
+            )
+            raise LoaderError(s)

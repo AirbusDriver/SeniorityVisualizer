@@ -6,6 +6,8 @@ from subprocess import call
 
 import click
 
+from seniority_visualizer_app.seniority.commands import add
+
 HERE = os.path.abspath(os.path.dirname(__file__))
 PROJECT_ROOT = os.path.join(HERE, os.pardir)
 TEST_PATH = os.path.join(PROJECT_ROOT, "tests")
@@ -63,3 +65,4 @@ def lint(fix_imports, check):
         execute_tool("Fixing import order", "isort", *isort_args)
     execute_tool("Formatting style", "black", *black_args)
     execute_tool("Checking code style", "flake8")
+

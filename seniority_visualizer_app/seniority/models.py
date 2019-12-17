@@ -4,7 +4,7 @@ Contains the models for the management of seniority data.
 from __future__ import annotations
 
 from datetime import date, datetime
-from typing import Dict
+from typing import Dict, Optional
 from collections import OrderedDict
 
 from sqlalchemy.ext.hybrid import hybrid_property
@@ -19,8 +19,10 @@ from seniority_visualizer_app.database import (
     db,
     relationship,
 )
+from seniority_visualizer_app.utils import cast_date, DateCastable
 
 
+# todo: change datetime to date
 class SeniorityListRecord(Model, SurrogatePK):
     """
     Collection of PilotRecords.
@@ -35,13 +37,13 @@ class SeniorityListRecord(Model, SurrogatePK):
     def __init__(self, published_date: datetime, **kwargs):
         super().__init__(published_date=published_date, **kwargs)
 
-    def to_seniority_list(self) -> SeniorityList:
+    def to_entity(self) -> SeniorityList:
         """
         Return a `SeniorityList` from the `SeniorityListRecord` object.
         """
         pilots = []
         for pr in self.pilots:
-            pilots.append(pr.to_pilot())
+            pilots.append(pr.to_entity())
 
         sen_list = SeniorityList(pilots)
 
@@ -54,17 +56,38 @@ class SeniorityListRecord(Model, SurrogatePK):
         :param kwargs: see :func:`pd.DataFrame.__init__()` **kwargs
         :return: DataFrame from pilot records
         """
-        df = pd.DataFrame(
-            (p.to_dict() for p in self.pilots),
-            **kwargs
-        )
+        df = pd.DataFrame((p.to_dict() for p in self.pilots), **kwargs)
         return df
 
+    # todo: rip out
     def to_dict(self):
         """
         Return a list of dicts of each PilotRecord in object
         """
         return [p.to_dict() for p in self.pilots]
+
+    @classmethod
+    def from_entity(
+        cls, entity: SeniorityList, published_date: Optional[DateCastable] = None
+    ) -> SeniorityListRecord:
+        pilots = (PilotRecord.from_entity(pilot) for pilot in entity.pilot_data)
+
+        if published_date is not None:
+            casted: datetime = datetime.fromordinal(
+                cast_date(published_date).toordinal()
+            )
+        else:
+            casted = datetime.now()
+
+        out = SeniorityListRecord(published_date=casted)
+
+        if casted:
+            out.published_date = casted
+
+        for p in pilots:
+            p.seniority_list = out
+
+        return out
 
 
 class PilotRecord(Model, SurrogatePK):
@@ -98,7 +121,7 @@ class PilotRecord(Model, SurrogatePK):
         """A standardized version of the employee_id attribute"""
         return standardize_employee_id(self.employee_id)
 
-    def to_pilot(self) -> Pilot:
+    def to_entity(self) -> Pilot:
         """Return a Pilot object from PilotRecord"""
         return Pilot.from_dict(self.to_dict())
 
@@ -135,4 +158,13 @@ class PilotRecord(Model, SurrogatePK):
         ]
         out = OrderedDict({k: getattr(self, k, None) for k in dict_keys})
         out["employee_id"] = standardize_employee_id(self.employee_id)
+        return out
+
+    @classmethod
+    def from_entity(cls, obj: Pilot) -> PilotRecord:
+        out = PilotRecord(
+            employee_id=str(obj.employee_id),
+            hire_date=obj.hire_date,
+            retire_date=obj.retire_date,
+        )
         return out

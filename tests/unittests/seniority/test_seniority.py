@@ -1,9 +1,7 @@
-from datetime import datetime
+from datetime import datetime, date
 
-from seniority_visualizer_app.seniority.models import (
-    PilotRecord,
-    SeniorityListRecord,
-)
+from seniority_visualizer_app.seniority.models import PilotRecord, SeniorityListRecord
+from seniority_visualizer_app.seniority.entities import SeniorityList, Pilot
 from tests.factories import PilotRecordFactory
 
 
@@ -26,6 +24,19 @@ class TestSeniorityListRecord:
         assert retrieved.id == sen_list.id == 1
         assert retrieved.published_date == sen_list.published_date == pub_date
 
+    def test_from_entity(self, clean_db):
+        assert SeniorityListRecord.query.all() == []
+
+        pilots = PilotRecordFactory.build_batch(10)
+
+        sen_list = SeniorityList(published_date=date(2020, 1, 1), pilots=pilots)
+
+        sen_list_record = SeniorityListRecord.from_entity(sen_list)
+
+        sen_list_record.save()
+
+        assert SeniorityListRecord.query.all() == [sen_list_record]
+
 
 class TestPilotRecord:
     def test_pilot_record_instantiation_and_retrieval(self, clean_db):
@@ -41,10 +52,10 @@ class TestPilotRecord:
 
 
 class TestPilotRecordPilotIntegration:
-    def test_to_pilot(self):
+    def test_to_entity(self):
         pilot_record = PilotRecordFactory.build()
 
-        pilot = pilot_record.to_pilot()
+        pilot = pilot_record.to_entity()
 
         assert pilot.hire_date == pilot_record.hire_date.date()
         assert pilot.retire_date == pilot_record.retire_date.date()
@@ -53,15 +64,13 @@ class TestPilotRecordPilotIntegration:
 
 
 class TestSeniorityListRecordSeniorityListIntegration:
-    def test_to_seniority_list(self, csv_senlist_pilot_records):
+    def test_to_entity(self, csv_senlist_pilot_records):
         sen_list_record, _ = csv_senlist_pilot_records
 
-        sen_list = sen_list_record.to_seniority_list()
+        sen_list = sen_list_record.to_entity()
 
         assert len(sen_list) == len(sen_list_record.pilots)
-        assert set(
-            p.literal_seniority_number for p in sen_list.pilot_data
-        ) == set(
+        assert set(p.literal_seniority_number for p in sen_list.pilot_data) == set(
             p.literal_seniority_number for p in sen_list_record.pilots
         )
 

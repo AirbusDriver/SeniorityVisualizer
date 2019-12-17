@@ -16,8 +16,15 @@ from seniority_visualizer_app.seniority.models import PilotRecord, SeniorityList
 from seniority_visualizer_app.user.role import Role
 from seniority_visualizer_app.user.models import User
 
-from .factories import UserFactory
 from .utils import make_pilot_dicts_from_csv, log_user_in
+from . import factories
+
+
+@pytest.fixture(autouse=True)
+def reset_sequences():
+    """Zero out factory sequences for test cases"""
+    factories.PilotFactory.reset_sequence()
+    factories.PilotRecordFactory.reset_sequence()
 
 
 def init_db(db):
@@ -92,7 +99,7 @@ def clean_db(session_db):
 @pytest.fixture
 def user(clean_db):
     """Create user for the tests."""
-    user = UserFactory(password="myprecious")
+    user = factories.UserFactory(password="myprecious")
     clean_db.session.commit()
     return user
 
