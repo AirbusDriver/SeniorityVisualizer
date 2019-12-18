@@ -26,13 +26,14 @@ def create_app(config_object="seniority_visualizer_app.settings"):
     """
     app = Flask(__name__.split(".")[0])
     app.config.from_object(config_object)
+    configure_logger(app)
     register_extensions(app)
     register_blueprints(app)
     register_errorhandlers(app)
     register_shellcontext(app)
     register_commands(app)
     register_request_hooks(app)
-    configure_logger(app)
+    configure_jinja(app)
     return app
 
 
@@ -108,3 +109,10 @@ def register_request_hooks(app):
 
         app.logger.info("updating role permissions")
         Role.insert_roles()
+
+
+def configure_jinja(app: Flask):
+    """Configure Jinja templating engine and register filters"""
+    from .jinja_filters import format_datetime
+
+    app.jinja_env.filters["datetime"] = format_datetime

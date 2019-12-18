@@ -4,7 +4,15 @@ import math
 from datetime import date, datetime, timedelta, timezone
 import uuid
 
-from factory import Factory, LazyAttribute, PostGenerationMethodCall, Sequence, sequence, LazyFunction
+from factory import (
+    Factory,
+    LazyAttribute,
+    PostGenerationMethodCall,
+    Sequence,
+    sequence,
+    LazyFunction,
+    post_generation,
+)
 from factory.alchemy import SQLAlchemyModelFactory
 from factory.faker import Faker
 from factory.fuzzy import FuzzyChoice, FuzzyDateTime
@@ -13,9 +21,10 @@ import faker
 from seniority_visualizer_app.database import db
 from seniority_visualizer_app.seniority.models import PilotRecord
 from seniority_visualizer_app.seniority.entities import Pilot, CsvRecord
-from seniority_visualizer_app.user.models import User
+from seniority_visualizer_app.user.models import User, Role
 
 fake = faker.Faker()
+
 
 def make_sample_csv_text():
     headers = ",".join(["first", "last", "date", "num"])
@@ -23,12 +32,7 @@ def make_sample_csv_text():
     fake = faker.Faker()
 
     def make_row():
-        row = [
-            fake.first_name(),
-            fake.last_name(),
-            fake.date(),
-            str(fake.random_int())
-        ]
+        row = [fake.first_name(), fake.last_name(), fake.date(), str(fake.random_int())]
         return ",".join(row)
 
     rows = "\n".join(make_row() for _ in range(20))
@@ -36,8 +40,6 @@ def make_sample_csv_text():
     csv_text = headers + "\n" + rows
 
     return csv_text
-
-
 
 
 class BaseFactory(SQLAlchemyModelFactory):

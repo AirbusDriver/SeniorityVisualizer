@@ -37,8 +37,10 @@ class CsvRepoInMemory(ICsvRepo):
                 return rec
         raise ValueError(f"no record with id: {id}")
 
-    def get_all(self) -> t.Iterable[CsvRecord]:
-        return self._records
+    def get_all(self) -> t.List[CsvRecord]:
+        def key(rec: CsvRecord):
+            return rec.published
+        return sorted(self._records.copy(), key=key)
 
     def save(self, record: CsvRecord, overwrite=False) -> uuid.UUID:
         """

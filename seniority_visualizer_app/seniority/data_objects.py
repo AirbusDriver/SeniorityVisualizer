@@ -27,4 +27,5 @@ class SeniorityListStatistics(NamedTuple):
     total_pilots: int
     valid_date: date
     most_recent_class: date
+    total_retired: int
     span: SeniorityListSpan

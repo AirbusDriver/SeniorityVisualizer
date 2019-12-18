@@ -1,5 +1,6 @@
 """Settings module for test app."""
 from pathlib import Path
+import datetime as dt
 
 TESTS_DIR = Path(__file__).parent
 
@@ -24,4 +25,4 @@ MAIL_PORT = "123"
 MAIL_USE_SSL = True
 
 CURRENT_SENIORITY_LIST_CSV = TESTS_DIR / "sample.csv"
-CURRENT_SENIORITY_LIST_PUBLISHED = "2020-01-01"
+CURRENT_SENIORITY_LIST_PUBLISHED = dt.datetime(2020, 1, 1)

@@ -149,3 +149,16 @@ def logged_in_user(testapp, user: User) -> User:
     user.set_password(password)
     user.save()
     assert user.check_password("myprecious"), "password not set to original password"
+
+
+@pytest.fixture
+def confirmed_user(logged_in_user):
+    user: User = logged_in_user
+
+    user.company_email_confirmed = True
+    user.personal_email_confirmed = True
+    user.role = Role.query.filter(Role.name.ilike("confirmed%")).first()
+
+    user.save()
+
+    return user

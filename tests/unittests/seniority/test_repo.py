@@ -1,27 +1,8 @@
-import typing as t
 import uuid
 
 import pytest
 
-from seniority_visualizer_app.seniority import repo
-from seniority_visualizer_app.seniority.exceptions import RepositoryError
 from tests import factories
-
-
-@pytest.fixture
-def csv_repo_in_memory_factory():
-    def make_repo(
-        records: int = 0
-    ) -> t.Tuple[repo.CsvRepoInMemory, t.List[repo.CsvRecord]]:
-        csv_records: t.List[repo.CsvRecord] = []
-        if records > 0:
-            csv_records = factories.CsvRecordFactory.build_batch(records)
-
-        csv_repo = repo.CsvRepoInMemory(records=csv_records)
-
-        return csv_repo, csv_records
-
-    return make_repo
 
 
 class TestCsvRepoInMemory:

@@ -1,3 +1,4 @@
+import typing as t
 from datetime import datetime
 from io import StringIO
 import uuid
@@ -6,8 +7,10 @@ import pandas as pd
 
 import pytest
 
+from seniority_visualizer_app.seniority import repo
 from seniority_visualizer_app.seniority.models import SeniorityListRecord
 from seniority_visualizer_app.seniority.entities import CsvRecord
+from tests import factories
 from tests.factories import PilotRecordFactory
 from tests.settings import CURRENT_SENIORITY_LIST_CSV
 
@@ -76,3 +79,25 @@ def standard_seniority_df(csv_record_from_sample_csv) -> pd.DataFrame:
     })
 
     return standardized
+
+@pytest.fixture
+def csv_repo_in_memory_factory():
+    """
+    Return a factory function that returns tuples containing
+    a repo and the records within it. Passing an integer to the factory
+    sets the number of records the resultant repository will be populated
+    with. Those records will also be returned as the last item in the tuple.
+    """
+
+    def make_repo(
+        records: int = 0
+    ) -> t.Tuple[repo.CsvRepoInMemory, t.List[repo.CsvRecord]]:
+        csv_records: t.List[repo.CsvRecord] = []
+        if records > 0:
+            csv_records = factories.CsvRecordFactory.build_batch(records)
+
+        csv_repo = repo.CsvRepoInMemory(records=csv_records)
+
+        return csv_repo, csv_records
+
+    return make_repo

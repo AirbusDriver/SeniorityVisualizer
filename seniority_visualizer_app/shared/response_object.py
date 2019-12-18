@@ -5,6 +5,13 @@ class ResponseSuccess(object):
         self.type = self.SUCCESS
         self.value = value
 
+    def __repr__(self):
+        s = f"<{type(self).__name__}: {self.value}>"
+        return s
+
+    def __str__(self):
+        return repr(self)
+
     def __nonzero__(self):
         return True
 
@@ -19,6 +26,13 @@ class ResponseFailure(object):
     def __init__(self, type_, message):
         self.type = type_
         self.message = self._format_message(message)
+
+    def __repr__(self):
+        s = f"<{type(self).__name__}: {self.type} -> {self.message}>"
+        return s
+
+    def __str__(self):
+        return repr(self)
 
     def _format_message(self, msg):
         if isinstance(msg, Exception):
