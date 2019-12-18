@@ -1,0 +1,7 @@
+{% macro render(pilot, div_class="") %}
+
+    <div data-pilot-record data-id={{ pilot.get("cmid") }} class={{ div_class }}>
+        {{ pilot.get("name") }}
+    </div>
+
+{% endmacro %}

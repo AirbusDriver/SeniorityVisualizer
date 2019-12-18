@@ -92,3 +92,6 @@ def make_standardized_seniority_dataframe(
     ].astype(str)
 
     return renamed
+
+
+STANDARD_FIELDS = SeniorityDfFields()

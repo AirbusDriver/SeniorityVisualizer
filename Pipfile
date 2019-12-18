@@ -35,6 +35,8 @@ flask-mail = "*"
 dateutils = "*"
 pandas = "*"
 tablib = "*"
+bokeh = "*"
+mypy = "*"
 
 [dev-packages]
 # Testing

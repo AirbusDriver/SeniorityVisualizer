@@ -1,10 +1,15 @@
 from datetime import datetime, date
 from typing import Optional, Iterator, Tuple, Union
+import typing as t
 from dateutil.relativedelta import relativedelta
 import logging
 
+import pandas as pd
+import numpy as np
+
 from seniority_visualizer_app.seniority.entities import Pilot, SeniorityList
 from . import data_objects as do
+from .dataframe import STANDARD_FIELDS as FIELDS
 from .exceptions import CalculationError
 
 logger = logging.getLogger(__name__)
@@ -109,3 +114,70 @@ def calculate_pilot_seniority_statistics(
     )
 
     return statistics
+
+
+def make_seniority_plot_date_index(
+    df: pd.DataFrame, start=None, end=None, freq="M", pin_to_first_day=True
+) -> pd.DatetimeIndex:
+    if FIELDS.RETIRE_DATE not in df:
+        raise ValueError(f"df missing {FIELDS.RETIRE_DATE} column")
+
+    first_date = start if start is not None else date.today()
+
+    last_date = df[FIELDS.RETIRE_DATE].max() if end is None else end
+
+    if pin_to_first_day:
+        first_date = _pin_to_first_day(first_date)
+        last_date = _ffwd_and_pin(last_date)
+
+    dates = pd.DatetimeIndex(start=first_date, end=last_date, freq="D")
+
+    day_filter = {
+        "D": lambda d: True,
+        "M": lambda d: d.day == min(first_date.day, 28),
+    }.get(freq, "M")
+
+    return dates[dates.map(day_filter)]
+
+
+def make_pilots_remaining_series(
+    df: pd.DataFrame, index: pd.DatetimeIndex, name: str = "retirements"
+) -> pd.Series:
+    out = []
+
+    retire_dates = df[FIELDS.RETIRE_DATE]
+
+    for date_ in index:
+        active = retire_dates[retire_dates > date_]
+
+        out.append(active.size)
+
+    return pd.Series(data=out, index=index, dtype=int, name=name)
+
+
+def _pin_to_first_day(
+    timestamp: t.Union[pd.Timestamp, date, datetime], combine_time: bool = False
+) -> datetime:
+    year = timestamp.year
+    month = timestamp.month
+    day = 1
+
+    out = pd.Timestamp(year=year, month=month, day=day)
+
+    if combine_time:
+        if not hasattr(timestamp, "time"):
+            time = pd.Timestamp.today()
+        else:
+            time = timestamp.time()  # type: ignore
+
+        return pd.Timestamp.combine(out, time)
+    return out.to_pydatetime()
+
+
+def _ffwd_and_pin(timestamp: t.Union[date, datetime, pd.Timestamp]) -> datetime:
+    cur = timestamp
+
+    while cur.day != 1 and cur.month == timestamp.month:
+        cur = cur + pd.Timedelta(days=7)
+
+    return _pin_to_first_day(cur, combine_time=True)
