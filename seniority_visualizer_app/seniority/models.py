@@ -5,13 +5,9 @@ from __future__ import annotations
 
 from datetime import date, datetime
 from typing import Dict, Optional
-from collections import OrderedDict
 
 from sqlalchemy.ext.hybrid import hybrid_property
-import pandas as pd
 
-from seniority_visualizer_app.seniority.entities import Pilot, SeniorityList
-from .utils import standardize_employee_id
 from seniority_visualizer_app.database import (
     Column,
     Model,
@@ -20,6 +16,8 @@ from seniority_visualizer_app.database import (
     relationship,
 )
 from seniority_visualizer_app.utils import cast_date, DateCastable
+from .entities import Pilot, SeniorityList
+from .utils import standardize_employee_id
 
 
 # todo: change datetime to date
@@ -48,23 +46,6 @@ class SeniorityListRecord(Model, SurrogatePK):
         sen_list = SeniorityList(pilots)
 
         return sen_list
-
-    def to_df(self, **kwargs) -> pd.DataFrame:
-        """
-        Return a DataFrame from the SeniorityListRecord
-
-        :param kwargs: see :func:`pd.DataFrame.__init__()` **kwargs
-        :return: DataFrame from pilot records
-        """
-        df = pd.DataFrame((p.to_dict() for p in self.pilots), **kwargs)
-        return df
-
-    # todo: rip out
-    def to_dict(self):
-        """
-        Return a list of dicts of each PilotRecord in object
-        """
-        return [p.to_dict() for p in self.pilots]
 
     @classmethod
     def from_entity(
@@ -123,7 +104,12 @@ class PilotRecord(Model, SurrogatePK):
 
     def to_entity(self) -> Pilot:
         """Return a Pilot object from PilotRecord"""
-        return Pilot.from_dict(self.to_dict())
+        return Pilot(
+            employee_id=self.standardized_employee_id,
+            hire_date=self.hire_date,
+            retire_date=self.retire_date,
+            literal_seniority_number=self.literal_seniority_number,
+        )
 
     @classmethod
     def from_dict(cls, _dict: Dict) -> PilotRecord:
@@ -140,31 +126,12 @@ class PilotRecord(Model, SurrogatePK):
 
         return cls(**out)
 
-    def to_dict(self) -> OrderedDict:
-        """
-        Return an OrderedDict of pilot record information
-        """
-        dict_keys = [
-            "employee_id",
-            "literal_seniority_number",
-            "seniority_list_id",
-            "hire_date",
-            "retire_date",
-            "first_name",
-            "last_name",
-            "base",
-            "seat",
-            "aircraft",
-        ]
-        out = OrderedDict({k: getattr(self, k, None) for k in dict_keys})
-        out["employee_id"] = standardize_employee_id(self.employee_id)
-        return out
-
     @classmethod
     def from_entity(cls, obj: Pilot) -> PilotRecord:
         out = PilotRecord(
             employee_id=str(obj.employee_id),
             hire_date=obj.hire_date,
             retire_date=obj.retire_date,
+            literal_seniority_number=obj.literal_seniority_number,
         )
         return out

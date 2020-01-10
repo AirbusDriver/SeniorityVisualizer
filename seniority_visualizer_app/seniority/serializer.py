@@ -1,5 +1,6 @@
 from typing import Dict, Any, Type
 
+import pandas as pd
 
 from seniority_visualizer_app.shared.serializers import BaseSerializer
 from .entities import SeniorityList, Pilot
@@ -23,6 +24,13 @@ class SeniorityListSerializer(BaseSerializer):
 
         return {"pilots": pilot_data, "published_date": obj.published_date}
 
+    def to_df(self, obj: SeniorityList) -> pd.DataFrame:
+        pilot_data = self.to_dict(obj)["pilots"]
+
+        df = pd.DataFrame(pilot_data)
+
+        return df
+
 
 def get_serializer(obj: Any) -> Type[BaseSerializer]:
     """Get a serializer for a class or instance. Raise ValueError if one does not exists."""
@@ -35,4 +43,3 @@ def get_serializer(obj: Any) -> Type[BaseSerializer]:
             return serializers[type(obj)]
         except KeyError:
             raise ValueError(f"no serializer exists for {type(obj)}")
-
