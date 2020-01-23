@@ -2,10 +2,11 @@ from datetime import date, timedelta, datetime
 from random import shuffle
 from typing import List
 from unittest import mock
+import uuid
 
 import pytest
 
-from seniority_visualizer_app.seniority.entities import Pilot, SeniorityList
+from seniority_visualizer_app.seniority.entities import Pilot, SeniorityList, CsvRecord
 from seniority_visualizer_app.seniority.exceptions import SeniorityListError
 from tests.factories import PilotFactory
 
@@ -231,11 +232,61 @@ class TestSeniorityList:
 
         published = "2000-2-3"
 
-        sen_list = SeniorityList.from_dict({
-            "published_date": published,
-            "pilots": pilots
-        })
+        sen_list = SeniorityList.from_dict(
+            {"published_date": published, "pilots": pilots}
+        )
 
         assert len(sen_list.pilot_data) == 2
         assert sen_list.published_date == date(2000, 2, 3)
 
+
+@pytest.fixture
+def sample_seniority_csv() -> CsvRecord:
+    id_ = uuid.uuid4()
+    published = datetime.now()
+    raw_text = "some,headers,here\nwith,some,data"
+    sen_data = CsvRecord(id=id_, published=published, text=raw_text)
+
+    return sen_data
+
+
+class TestSeniorityCsv:
+    def test_id_immutable(self, sample_seniority_csv):
+        sen_data = sample_seniority_csv
+
+        isinstance(sen_data.id, uuid.UUID)
+
+        with pytest.raises(AttributeError):
+            sen_data.id = uuid.uuid4()
+
+        with pytest.raises(AttributeError):
+            sen_data.id = None
+
+    def test_text_data_immutable(self, sample_seniority_csv):
+
+        sen_data = sample_seniority_csv
+
+        with pytest.raises(AttributeError):
+            sen_data.text = "something else"
+
+    def test_repr_does_not_raise(self, sample_seniority_csv):
+        assert sample_seniority_csv.__repr__() is not None
+
+    def test_from_dict(self):
+        dict_ = {
+            "id": uuid.uuid4(),
+            "published": datetime.now(),
+            "text": "some,csv\ndata,file",
+        }
+        csv_data = CsvRecord.from_dict(dict_)
+
+        assert isinstance(csv_data, CsvRecord)
+
+        dict_2 = dict_.copy()
+        dict_2["id"] = str(dict_2["id"])
+
+        csv_data2 = CsvRecord.from_dict(dict_)
+
+        assert isinstance(csv_data, CsvRecord)
+
+        assert csv_data == csv_data2

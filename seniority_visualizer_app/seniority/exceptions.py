@@ -14,3 +14,21 @@ class LoaderError(Exception):
     """Error occurred during loader operation"""
 
     pass
+
+
+class DatasourceValidationError(LoaderError):
+    """Datasource has improper data"""
+
+    pass
+
+
+class DatasourceSchemaError(DatasourceValidationError):
+    """Datasource has schema problem"""
+
+    pass
+
+
+class RepositoryError:
+    """Error in Repository Layer"""
+
+    pass

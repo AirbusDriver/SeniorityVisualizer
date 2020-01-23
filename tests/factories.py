@@ -2,16 +2,42 @@
 """Factories to help in tests."""
 import math
 from datetime import date, datetime, timedelta, timezone
+import uuid
 
-from factory import Factory, LazyAttribute, PostGenerationMethodCall, Sequence, sequence
+from factory import Factory, LazyAttribute, PostGenerationMethodCall, Sequence, sequence, LazyFunction
 from factory.alchemy import SQLAlchemyModelFactory
 from factory.faker import Faker
 from factory.fuzzy import FuzzyChoice, FuzzyDateTime
+import faker
 
 from seniority_visualizer_app.database import db
 from seniority_visualizer_app.seniority.models import PilotRecord
-from seniority_visualizer_app.seniority.entities import Pilot
+from seniority_visualizer_app.seniority.entities import Pilot, CsvRecord
 from seniority_visualizer_app.user.models import User
+
+fake = faker.Faker()
+
+def make_sample_csv_text():
+    headers = ",".join(["first", "last", "date", "num"])
+
+    fake = faker.Faker()
+
+    def make_row():
+        row = [
+            fake.first_name(),
+            fake.last_name(),
+            fake.date(),
+            str(fake.random_int())
+        ]
+        return ",".join(row)
+
+    rows = "\n".join(make_row() for _ in range(20))
+
+    csv_text = headers + "\n" + rows
+
+    return csv_text
+
+
 
 
 class BaseFactory(SQLAlchemyModelFactory):
@@ -90,3 +116,16 @@ class PilotFactory(Factory):
         return date(
             retirements_start.year + adj_year, retirements_start.month + adj_month, 1
         )
+
+
+class CsvRecordFactory(BaseFactory):
+    """CsvRecord Factory"""
+
+    class Meta:
+        model = CsvRecord
+
+        inline_args = ("id", "published", "text")
+
+    id = LazyFunction(lambda: uuid.uuid4())
+    published = LazyFunction(lambda: datetime.fromisoformat(fake.date()))
+    text = LazyFunction(make_sample_csv_text)

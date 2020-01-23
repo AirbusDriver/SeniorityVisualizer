@@ -1,4 +1,8 @@
 """Settings module for test app."""
+from pathlib import Path
+
+TESTS_DIR = Path(__file__).parent
+
 ENV = "development"
 TESTING = True
 SQLALCHEMY_DATABASE_URI = "sqlite://"
@@ -18,3 +22,6 @@ MAIL_PASSWORD = "1122boogiewoogieave"
 MAIL_SERVER = "localhost"
 MAIL_PORT = "123"
 MAIL_USE_SSL = True
+
+CURRENT_SENIORITY_LIST_CSV = TESTS_DIR / "sample.csv"
+CURRENT_SENIORITY_LIST_PUBLISHED = "2020-01-01"

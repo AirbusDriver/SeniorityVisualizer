@@ -1,6 +1,8 @@
 from __future__ import annotations
 from datetime import date, datetime
 from typing import Union, Optional, Dict, Any, Iterable, Iterator, List
+import typing as t
+import uuid
 
 import pandas as pd
 
@@ -246,3 +248,55 @@ class SeniorityList:
         pilots = [Pilot.from_dict(p) for p in dict_["pilots"]]
 
         return cls(pilots=pilots, published_date=dict_.get("published_date"))
+
+
+class CsvRecord:
+    def __init__(self, id: uuid.UUID, published: datetime, text: str):
+        self.id: uuid.UUID = id
+        self.published: datetime = published
+        self.text = text
+
+    def __repr__(self):
+        s = f"{type(self).__name__}(id: {str(self.id)}, published: {self.published}, size: {len(self.text)})"
+        return s
+
+    def __eq__(self, other):
+        return all(
+            [
+                self.id == other.id,
+                self.published == other.published,
+                self.text == other.text,
+            ]
+        )
+
+    @property
+    def id(self) -> uuid.UUID:
+        return self._id
+
+    @id.setter
+    def id(self, val: uuid.UUID):
+        if hasattr(self, "_id"):
+            raise AttributeError("can not change id once assigned")
+        self._id: uuid.UUID = val
+
+    @property
+    def text(self) -> str:
+        return self._text_data
+
+    @text.setter
+    def text(self, text: str):
+        if hasattr(self, "_text_data") and self._text_data is not None:
+            raise AttributeError("text_data is read only once set")
+        self._text_data: str = text
+
+    @classmethod
+    def from_dict(cls, dict_: t.Dict) -> CsvRecord:
+        id_ = dict_["id"]
+        if not isinstance(id_, uuid.UUID):
+            id_ = uuid.UUID(str(id_))
+
+        published = dict_.get("published", datetime.now())
+
+        raw_text = dict_["text"]
+
+        return cls(id_, published, raw_text)
