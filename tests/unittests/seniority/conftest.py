@@ -1,9 +1,15 @@
 from datetime import datetime
+from io import StringIO
+import uuid
+import datetime as dt
+import pandas as pd
 
 import pytest
 
 from seniority_visualizer_app.seniority.models import SeniorityListRecord
+from seniority_visualizer_app.seniority.entities import CsvRecord
 from tests.factories import PilotRecordFactory
+from tests.settings import CURRENT_SENIORITY_LIST_CSV
 
 
 @pytest.fixture
@@ -28,3 +34,45 @@ def populated_seniority_list(clean_db):
     yield seniority_list
 
     PilotRecordFactory.reset_sequence()
+
+
+@pytest.fixture
+def csv_record_from_sample_csv() -> CsvRecord:
+    record = CsvRecord(
+        uuid.uuid4(),
+        published=dt.datetime(2010, 1, 1),
+        text=CURRENT_SENIORITY_LIST_CSV.read_text()
+    )
+
+    return record
+
+@pytest.fixture
+def standard_seniority_df(csv_record_from_sample_csv) -> pd.DataFrame:
+    """
+    Return a standardized dataframe that has lookup access in line with
+    SeniorityDfFields attributes. The data is from the sample.csv test csv.
+
+
+    :param csv_record_from_sample_csv:
+    :return:
+    """
+    from seniority_visualizer_app.seniority import dataframe as loader
+
+    fields = loader.SeniorityDfFields
+
+    buffer = StringIO()
+    buffer.write(csv_record_from_sample_csv.text)
+    buffer.seek(0)
+
+    df = pd.read_csv(buffer)
+
+    standardized = loader.make_standardized_seniority_dataframe(df, {
+        "seniority_number": fields.SENIORITY_NUMBER,
+        "cmid": fields.EMPLOYEE_ID,
+        "fleet": fields.FLEET,
+        "seat": fields.SEAT,
+        "base": fields.BASE,
+        "retire_date": fields.RETIRE_DATE
+    })
+
+    return standardized
