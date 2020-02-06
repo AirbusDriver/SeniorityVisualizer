@@ -7,6 +7,7 @@ from subprocess import call
 import click
 
 from seniority_visualizer_app.seniority.commands import add
+from seniority_visualizer_app.user.commands import create_user
 
 HERE = os.path.abspath(os.path.dirname(__file__))
 PROJECT_ROOT = os.path.join(HERE, os.pardir)

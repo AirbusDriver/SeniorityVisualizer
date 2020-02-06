@@ -54,8 +54,8 @@ class User(UserMixin, SurrogatePK, Model):
     def __init__(
         self,
         username,
-        company_email,
-        personal_email,
+        company_email=None,
+        personal_email=None,
         password=None,
         role=None,
         **kwargs,
