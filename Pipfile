@@ -37,6 +37,7 @@ pandas = "*"
 tablib = "*"
 bokeh = "*"
 mypy = "*"
+psycopg2-binary = "*"
 
 [dev-packages]
 # Testing
