@@ -8,7 +8,7 @@ from unittest import mock
 from typing import Tuple, List
 
 import pytest
-from webtest import TestApp
+from webtest import TestApp, TestRequest, TestResponse
 
 from seniority_visualizer_app.app import create_app
 from seniority_visualizer_app.database import db as _db
@@ -18,6 +18,11 @@ from seniority_visualizer_app.user.models import User
 
 from .utils import make_pilot_dicts_from_csv, log_user_in
 from . import factories
+
+
+TestApp.__test__ = False
+TestResponse.__test__ = False
+TestRequest.__test__ = False
 
 
 @pytest.fixture(autouse=True)
