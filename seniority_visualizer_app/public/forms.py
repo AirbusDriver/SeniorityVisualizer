@@ -4,7 +4,7 @@ from flask_wtf import FlaskForm
 from wtforms import PasswordField, StringField
 from wtforms.validators import DataRequired
 
-from seniority_visualizer_app.user.models import User
+from seniority_visualizer_app.user.models import User, Permissions
 
 
 class LoginForm(FlaskForm):
@@ -33,7 +33,7 @@ class LoginForm(FlaskForm):
             self.password.errors.append("Invalid password")
             return False
 
-        if not self.user.active:
+        if not self.user.active and not self.user.role.has_permission(Permissions.ADMIN):
             self.username.errors.append("User not activated")
             return False
         return True
