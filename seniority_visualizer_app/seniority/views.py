@@ -1,21 +1,16 @@
 from typing import List, Union
 from pathlib import Path
 import uuid
-from hashlib import md5
 import io
-import json
-import datetime as dt
+
 
 import pandas as pd
 from flask import (
     Blueprint,
     make_response,
     render_template,
-    g,
     current_app,
     Flask,
-    flash,
-    jsonify,
     request,
 )
 from flask_login import login_required, current_user
@@ -27,10 +22,8 @@ from .utils import standardize_employee_id
 from seniority_visualizer_app.user.models import Permissions
 from .repo import CsvRepoInMemory, ICsvRepo
 from .entities import CsvRecord
-from .use_cases import GetCurrentSeniorityCsv
 from . import statistics as stat
 from .dataframe import STANDARD_FIELDS, make_standardized_seniority_dataframe
-from .data_objects import SeniorityListStatistics
 from ..shared.entities import EmployeeID
 from .use_cases import GetCurrentSeniorityCsv, GetCurrentSeniorityListReport
 from . import use_cases as uc
@@ -127,7 +120,7 @@ def current_status():
     if not res:
         current_app.logger.error(res.value)
         return render_template(
-            "seniority/current_status.html", error='No records currently found'
+            "seniority/current_status.html", error="No records currently found"
         )
     else:
         response = render_template(
@@ -137,61 +130,113 @@ def current_status():
 
 
 @blueprint.route("retirements")
+@cache.cached(3600, query_string=True)
 def plot_retirements():
     """
     Present the base plot template
     """
     from bokeh.resources import CDN
-    from bokeh.plotting import figure, ColumnDataSource
+    from bokeh.plotting import figure, ColumnDataSource, Figure
     from bokeh.embed import components
-    from bokeh.models import HoverTool
+    from bokeh.models import HoverTool, LinearAxis, Range1d
+
+    ROLLING = int(request.args.get("rolling_periods", 6))
 
     repo = get_repo(current_app)
 
-    try:
-        record = GetCurrentSeniorityCsv(repo).execute()
-    except ValueError:
-        flash("No records in repository")
+    response = GetCurrentSeniorityCsv(repo).execute(
+        uc.requests.SeniortyFilterRequest(all=True)
+    )
+
+    if not response:
         return render_template("seniority/base_plot.html", errors=True)
 
-    fig = figure(title="Remaining Pilots", x_axis_type="datetime")
+    else:
+        record: CsvRecord = response.value[-1]
 
     df = make_df_from_record(record)
 
-    dates = stat.make_seniority_plot_date_index(
-        df, end=df[STANDARD_FIELDS.RETIRE_DATE].max(), freq="M"
+    INTERVALS = pd.interval_range(
+        start=pd.Timestamp(record.published),
+        end=stat.ffwd_and_pin(df[STANDARD_FIELDS.RETIRE_DATE].max()),
+        freq="MS",
+        closed="left",
     )
 
-    source_df = pd.DataFrame(
-        index=dates,
-        data=stat.make_pilots_remaining_series(df, dates),
-        columns=["retirements"],
+    retirements = stat.calculate_retirements_over_time(
+        df[STANDARD_FIELDS.RETIRE_DATE], INTERVALS
     )
-    source_df.index.name = "date"
 
-    source = ColumnDataSource(source_df)
+    retire_data = pd.DataFrame(data=dict(retirements=retirements), index=INTERVALS.left)
+    retire_data.index.name = "date"
 
-    fig.line(x="date", y="retirements", source=source)
+    retire_data["rolling"] = retire_data["retirements"].rolling(window=ROLLING).mean()
+    retire_data["remaining"] = len(df) - retire_data["retirements"].cumsum()
+
+    source = ColumnDataSource(retire_data)
+
+    fig: Figure = figure(
+        title="Remaining Pilots",
+        x_axis_type="datetime",
+        plot_height=600,
+        plot_width=1200,
+        y_range=(0, retire_data[["retirements", "rolling"]].max().max() * 1.1),
+    )
+
+    fig.circle(
+        x="date",
+        y="retirements",
+        source=source,
+        alpha=0.2,
+        legend_label="Retirements this calendar month",
+    )
+    fig.line(
+        x="date",
+        y="rolling",
+        source=source,
+        legend_label=f"Mean retirements/month last {ROLLING} months",
+    )
+    fig.extra_y_ranges = dict(remaining=Range1d(start=0, end=len(df) * 1.05))
+
+    fig.add_layout(LinearAxis(y_range_name="remaining"), "right")
+    fig.legend.click_policy = "hide"
+
+    fig.line(
+        x="date",
+        y="remaining",
+        source=source,
+        legend_label="Remaining active pilots",
+        y_range_name="remaining",
+    )
 
     hov = HoverTool(
-        mode="vline",
-        tooltips=[("Date", "@date{%F}"), ("Active", "@retirements")],
+        tooltips=[
+            ("Date", "@date{%F}"),
+            ("Retirements", "@retirements"),
+            (f"Avg last {ROLLING} months", "@rolling"),
+            ("Remaining", "@remaining"),
+        ],
         formatters={"date": "datetime"},
     )
-    repo = get_repo(current_app)
-
-    record = GetCurrentSeniorityCsv(repo).execute()
-
-    df = make_df_from_record(record)
-
-    fig = figure(title="Sample Plot")
 
     fig.add_tools(hov)
 
     script, div = components(fig)
 
+    description = render_template(
+        "seniority/descriptions/retirements.html",
+        max_retirements=retire_data["retirements"].max(),
+        max_retirements_month=retire_data["retirements"][
+            retire_data["retirements"] == retire_data["retirements"].max()
+        ].index[0].date(),
+    )
+
     return render_template(
-        "seniority/base_plot.html", resources=CDN.render(), script=script, div=div
+        "seniority/base_plot.html",
+        resources=CDN.render(),
+        script=script,
+        div=div,
+        description=description,
     )
 
 
