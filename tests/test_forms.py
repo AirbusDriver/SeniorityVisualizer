@@ -88,6 +88,17 @@ class TestLoginForm:
         assert form.validate() is False
         assert "User not activated" in form.username.errors
 
+    def test_case_insensitive_lookup(self, user: User):
+        """
+        Given an existing user
+        When a user logs in with a username in a different case
+        Then the user is logged in successfully
+        """
+        username = user.username.upper()
+        user.set_password("example")
+        form = LoginForm(username=username, password="example")
+        assert form.validate()
+
 
 class TestCompanyEmailValidator:
     @pytest.mark.parametrize(
