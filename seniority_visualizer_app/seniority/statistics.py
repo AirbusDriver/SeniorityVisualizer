@@ -181,16 +181,11 @@ def ffwd_and_pin(timestamp: t.Union[date, datetime, pd.Timestamp]) -> datetime:
     return pin_to_first_day(cur, combine_time=True)
 
 
-def calculate_retirements_over_time(ds: pd.Series, interval_series: pd.IntervalIndex):
+def calculate_retirements_over_time(
+    ds: pd.Series, interval_series: pd.IntervalIndex
+):
     """Return a list of the number of retirements that occur within each Interval"""
 
-    data: t.List[int] = []
+    data = ds.groupby(pd.cut(ds, interval_series)).count()
 
-    to_check = ds.copy()
-
-    for interval in interval_series:
-        retiring = to_check[to_check.map(lambda d: d in interval)]
-        data.append(retiring.count())
-        to_check = to_check.drop(retiring.index)
-
-    return data
+    return list(data)
