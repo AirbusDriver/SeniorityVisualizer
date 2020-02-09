@@ -9,7 +9,7 @@ import numpy as np
 
 from seniority_visualizer_app.seniority.entities import Pilot, SeniorityList
 from . import data_objects as do
-from .dataframe import STANDARD_FIELDS as FIELDS
+from .dataframe import STANDARD_FIELDS as FIELDS, require_fields
 from .exceptions import CalculationError
 
 logger = logging.getLogger(__name__)
@@ -116,9 +116,7 @@ def calculate_pilot_seniority_statistics(
     return statistics
 
 
-def make_seniority_plot_date_index(
-    df: pd.DataFrame, start=None, end=None, freq="M", pin_to_first_day=True
-) -> pd.DatetimeIndex:
+def make_seniority_plot_date_index(df: pd.DataFrame, start=None, end=None, freq="M", pin_to_first=True) -> pd.DatetimeIndex:
     if FIELDS.RETIRE_DATE not in df:
         raise ValueError(f"df missing {FIELDS.RETIRE_DATE} column")
 
@@ -126,11 +124,11 @@ def make_seniority_plot_date_index(
 
     last_date = df[FIELDS.RETIRE_DATE].max() if end is None else end
 
-    if pin_to_first_day:
-        first_date = _pin_to_first_day(first_date)
-        last_date = _ffwd_and_pin(last_date)
+    if pin_to_first:
+        first_date = pin_to_first_day(first_date)
+        last_date = ffwd_and_pin(last_date)
 
-    dates = pd.DatetimeIndex(start=first_date, end=last_date, freq="D")
+    dates = pd.date_range(start=first_date, end=last_date, freq="D")
 
     day_filter = {
         "D": lambda d: True,
@@ -155,7 +153,7 @@ def make_pilots_remaining_series(
     return pd.Series(data=out, index=index, dtype=int, name=name)
 
 
-def _pin_to_first_day(
+def pin_to_first_day(
     timestamp: t.Union[pd.Timestamp, date, datetime], combine_time: bool = False
 ) -> datetime:
     year = timestamp.year
@@ -174,10 +172,22 @@ def _pin_to_first_day(
     return out.to_pydatetime()
 
 
-def _ffwd_and_pin(timestamp: t.Union[date, datetime, pd.Timestamp]) -> datetime:
+def ffwd_and_pin(timestamp: t.Union[date, datetime, pd.Timestamp]) -> datetime:
     cur = timestamp
 
     while cur.day != 1 and cur.month == timestamp.month:
         cur = cur + pd.Timedelta(days=7)
 
-    return _pin_to_first_day(cur, combine_time=True)
+    return pin_to_first_day(cur, combine_time=True)
+
+
+def calculate_retirements_over_time(ds: pd.Series, interval_series: pd.IntervalIndex):
+    """Return a list of the number of retirements that occur within each Interval"""
+
+    data: t.List[int] = []
+
+    for interval in interval_series:
+        retiring = ds[ds.map(lambda d: d in interval)]
+        data.append(retiring.count())
+
+    return data

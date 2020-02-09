@@ -3,6 +3,7 @@ Module handling the creation of the standard dataframe that statistical and plot
 code will use.
 """
 import typing as t
+from functools import wraps
 
 import pandas as pd
 
@@ -92,6 +93,43 @@ def make_standardized_seniority_dataframe(
     ].astype(str)
 
     return renamed
+
+
+def require_fields(*fields):
+    """
+    Raise a KeyError if a function is called with a missing field. The
+    first index of the function should be the target parameter.
+
+    Usage:
+        >>> def some_func(df, *args, **kwargs):
+        ...     print("did stuff")
+        >>> d = dict(some_key="test", other="data")
+        >>> some_func(d)
+        did stuff
+
+    Now with the decorator applied
+
+        >>> @require_fields("some_other_key")
+        ... def some_func(df, *args, **kwargs):
+        ...     print("did stuff")
+        >>> some_func(d)
+        Traceback (most recent call last):
+        ...
+        KeyError: "function 'some_func' missing fields: ['some_other_key']"
+    """
+    def decorator(func):
+        @wraps(func)
+        def wrapper(df: pd.DataFrame, *args, **kwargs):
+            keys = set(df.keys())
+            require = set(fields)
+            missing = require.difference(keys)
+            if missing:
+                raise KeyError(f"function '{func.__name__}' missing fields: {list(missing)}")
+            return func(df, *args, **kwargs)
+        return wrapper
+    return decorator
+
+
 
 
 STANDARD_FIELDS = SeniorityDfFields()

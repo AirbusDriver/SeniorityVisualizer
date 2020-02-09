@@ -4,7 +4,9 @@
 {% block page_title %}Seniorty List Status{% endblock %}
 
 {% block css %}
-    <style>#blurb {color: red;}</style>
+    <style>#blurb {
+        color: red;
+    }</style>
 {% endblock %}
 
 {% block content %}
@@ -15,7 +17,8 @@
             <small id="blurb">
                 Please note that this information may not be entirely up to date. Pilots come and go,
                 and this information merely represents a snapshot of the current pilot group, exactly as it
-                was published on <span id="valid-date">{{ report.valid_date|datetime }}</span>. I am unable to keep up with all of the
+                was published on <span id="valid-date">{{ report.valid_date|datetime }}</span>. I am unable to keep up
+                with all of the
                 changes to the seniority list in real time, but am updating the data as quickly as it becomes
                 available.
             </small>
@@ -27,6 +30,19 @@
                 <p>Latest Retirement: {{ report.span.latest_retire|datetime("date") }}</p>
             </div>
         </div>
+
+        <div id="plot-menu" class="m-auto border container">
+            <div class="row">
+                <div class="col-lg p-3">
+                    <a class="btn btn-primary" href="{{ url_for(".plot_retirements") }}" role="button">
+                        Retirement Rates
+                    </a>
+                </div>
+            </div>
+        </div>
+
+
+
     {% else %}
         <div id="error">
             <h5 class="warning">{{ error }}</h5>

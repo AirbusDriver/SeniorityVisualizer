@@ -13,6 +13,7 @@ from .entities import SeniorityList
 from .statistics import calculate_seniority_list_span
 
 
+# todo: remove this in favor of statistics version
 def generate_date_indices(
     start: DateCastable, end: DateCastable, yield_overflow=False
 ) -> Iterator[dt.date]:

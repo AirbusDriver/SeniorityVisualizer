@@ -42,19 +42,19 @@ def test_calculate_pilot_seniority_status(pilot_dicts_from_csv):
 def test_pin_to_first_day():
     inp = pd.Timestamp("2020-05-06 12:34:00")
 
-    assert stat._pin_to_first_day(inp) == pd.Timestamp("2020-05-01")
-    assert stat._pin_to_first_day(inp, True) == pd.Timestamp("2020-05-01 12:34:00")
+    assert stat.pin_to_first_day(inp) == pd.Timestamp("2020-05-01")
+    assert stat.pin_to_first_day(inp, True) == pd.Timestamp("2020-05-01 12:34:00")
 
     inp = dt.date(2020, 5, 6)
 
-    assert stat._pin_to_first_day(inp) == pd.Timestamp("2020-05-01")
+    assert stat.pin_to_first_day(inp) == pd.Timestamp("2020-05-01")
 
 
 def test_ffwd_and_pin():
-    assert stat._ffwd_and_pin(pd.Timestamp("2020-05-06")) == pd.Timestamp("2020-06-01")
-    assert stat._ffwd_and_pin(pd.Timestamp("2020-05-01")) == pd.Timestamp("2020-05-01")
+    assert stat.ffwd_and_pin(pd.Timestamp("2020-05-06")) == pd.Timestamp("2020-06-01")
+    assert stat.ffwd_and_pin(pd.Timestamp("2020-05-01")) == pd.Timestamp("2020-05-01")
 
-    assert stat._ffwd_and_pin(pd.Timestamp("2020-12-31")) == pd.Timestamp("2021-01-01")
+    assert stat.ffwd_and_pin(pd.Timestamp("2020-12-31")) == pd.Timestamp("2021-01-01")
 
 
 class TestMakeSeniorityPlotTimeSeries:
@@ -72,15 +72,11 @@ class TestMakeSeniorityPlotTimeSeries:
         ) as mock_date:
             mock_date.today.return_value = dt.date(2020, 1, 15)
 
-            res = stat.make_seniority_plot_date_index(
-                standard_seniority_df, start=None, pin_to_first_day=False
-            )
+            res = stat.make_seniority_plot_date_index(standard_seniority_df, start=None, pin_to_first=False)
 
             assert res[0] == dt.date(2020, 1, 15)
 
-            res = stat.make_seniority_plot_date_index(
-                standard_seniority_df, start=None, pin_to_first_day=True
-            )
+            res = stat.make_seniority_plot_date_index(standard_seniority_df, start=None, pin_to_first=True)
 
             assert res[0] == dt.date(2020, 1, 1)
 
@@ -91,8 +87,23 @@ def test_pilots_remaining_series(standard_seniority_df):
     start = dt.date(today.year, today.month, 1)
     end = standard_seniority_df[fields.RETIRE_DATE].max()
 
-    dates = pd.DatetimeIndex(start=start, end=end, freq="Y")
+    dates = pd.date_range(start=start, end=end, freq="Y")
 
     res = stat.make_pilots_remaining_series(standard_seniority_df, dates)
 
     assert res is not None
+
+
+def test_calculate_retirements_over_time():
+    dates = ["2020-01-01", "2020-01-15", "2020-03-15", "2020-05-30"]
+
+    data = pd.Series(map(lambda d: pd.Timestamp(d), dates))
+
+    intervals = pd.interval_range(
+        pd.Timestamp("2020-01-01"), pd.Timestamp("2020-06-01"), freq="MS", closed="left"
+    )
+
+    result = stat.calculate_retirements_over_time(data, intervals)
+
+    assert result == [2, 0, 1, 0, 1]
+    assert len(result) == len(intervals)
