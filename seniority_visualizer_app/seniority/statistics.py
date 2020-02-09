@@ -186,8 +186,11 @@ def calculate_retirements_over_time(ds: pd.Series, interval_series: pd.IntervalI
 
     data: t.List[int] = []
 
+    to_check = ds.copy()
+
     for interval in interval_series:
-        retiring = ds[ds.map(lambda d: d in interval)]
+        retiring = to_check[to_check.map(lambda d: d in interval)]
         data.append(retiring.count())
+        to_check = to_check.drop(retiring.index)
 
     return data
