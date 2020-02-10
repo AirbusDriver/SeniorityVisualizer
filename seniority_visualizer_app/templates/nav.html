@@ -8,11 +8,14 @@
         <span class="navbar-toggler-icon"></span>
     </button>
     <div class="collapse navbar-collapse" id="navbarSupportedContent">
-        <ul class="navbar-nav mr-auto">
-            <li class="nav-item active">
+        <ul id="nav-items" class="navbar-nav mr-auto">
+            <li class="nav-item">
                 <a class="nav-link" href="{{ url_for('public.home') }}">Home
                     <span class="sr-only">(current)</span>
                 </a>
+            </li>
+            <li class="nav-item">
+                <a href="{{ url_for('seniority.current_status') }}" class="nav-link">Seniority Data</a>
             </li>
             <li class="nav-item">
                 <a class="nav-link" href="{{ url_for('public.about') }}">About</a>
@@ -55,3 +58,15 @@
         {% endif %}
     </div><!-- /.navbar-collapse -->
 </nav>
+
+<script>
+    window.onload = (e) => {
+    const currentURL = window.location.href;
+    const navLinks = Array.from(document.getElementsByClassName('nav-link'));
+
+    const hits = navLinks.filter((l) => currentURL.indexOf(l.href) !== -1);
+
+    hits.sort((e) => e.href.length)[0].classList.add("active");
+    }
+
+</script>
