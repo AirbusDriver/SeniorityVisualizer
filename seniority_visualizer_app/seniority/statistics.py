@@ -14,6 +14,9 @@ from .exceptions import CalculationError
 
 logger = logging.getLogger(__name__)
 
+DateLike = t.Union[date, pd.Timestamp]
+DateSeries = t.Union[t.Iterable[DateLike], pd.DatetimeIndex]
+
 
 def calculate_seniority_list_span(sen_list: SeniorityList) -> do.SeniorityListSpan:
     """Return the earliest hire date and latest retire date from a SeniorityList"""
@@ -116,7 +119,9 @@ def calculate_pilot_seniority_statistics(
     return statistics
 
 
-def make_seniority_plot_date_index(df: pd.DataFrame, start=None, end=None, freq="M", pin_to_first=True) -> pd.DatetimeIndex:
+def make_seniority_plot_date_index(
+    df: pd.DataFrame, start=None, end=None, freq="M", pin_to_first=True
+) -> pd.DatetimeIndex:
     if FIELDS.RETIRE_DATE not in df:
         raise ValueError(f"df missing {FIELDS.RETIRE_DATE} column")
 
@@ -183,9 +188,51 @@ def ffwd_and_pin(timestamp: t.Union[date, datetime, pd.Timestamp]) -> datetime:
 
 def calculate_retirements_over_time(
     ds: pd.Series, interval_series: pd.IntervalIndex
-):
+) -> t.List[int]:
     """Return a list of the number of retirements that occur within each Interval"""
 
     data = ds.groupby(pd.cut(ds, interval_series)).count()
 
     return list(data)
+
+
+@require_fields(FIELDS.RETIRE_DATE, FIELDS.SENIORITY_NUMBER, FIELDS.EMPLOYEE_ID)
+def calculate_number_of_active_senior_pilots_for_dates(
+    df: pd.DataFrame, date_series: DateSeries, employee_id: str
+) -> t.List[float]:
+    """
+    Return a list of floats (or NaN) representing the number of pilots who would be active and senior
+    to the pilot represented by the `employee_id`. `float("nan")` is returned for dates in which the pilot
+    retire date >= date.
+
+    :param df: dataframe containing seniority information. Must contain the standard SENIORITY_NUMBER, EMPLOYEE_ID,
+    and RETIRE_DATE fields.
+    :param date_series: dates to perform operations on
+    :param employee_id: employee_id as found in dataframe
+
+    :raise ValueError: if record does not exist for `employee_id`
+    """
+
+    def senior_filter(sen_num: int, ref_date: str):
+        def _senior(ds: pd.Series):
+            return ds[(ds[F.SENIORITY_NUMBER] < sen_num) & (df[F.RETIRE_DATE] > ref_date)]
+        return _senior
+
+    F = FIELDS
+
+    target_info = df[df[F.EMPLOYEE_ID] == employee_id]
+
+    if target_info.shape[0] == 0:
+        raise ValueError(f"no record with {F.EMPLOYEE_ID} == {employee_id}")
+
+    target_record = target_info.iloc[0]
+
+    target_sen_num = target_record[F.SENIORITY_NUMBER]
+
+    data = pd.DataFrame(index=date_series)
+
+    data["seniority_on_date"] = data.index.map(lambda d: senior_filter(target_sen_num, d)(df).shape[0])
+
+    data[data.index > target_record[F.RETIRE_DATE]] = float("nan")
+
+    return data["seniority_on_date"].to_list()

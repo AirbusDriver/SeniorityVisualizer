@@ -12,6 +12,10 @@ from flask import (
     current_app,
     Flask,
     request,
+    flash,
+    jsonify,
+    redirect,
+    url_for
 )
 from flask_login import login_required, current_user
 
@@ -22,6 +26,7 @@ from .utils import standardize_employee_id
 from seniority_visualizer_app.user.models import Permissions
 from .repo import CsvRepoInMemory, ICsvRepo
 from .entities import CsvRecord
+from .forms import BuildPilotPlotForm
 from . import statistics as stat
 from .dataframe import STANDARD_FIELDS, make_standardized_seniority_dataframe
 from ..shared.entities import EmployeeID
@@ -228,7 +233,9 @@ def plot_retirements():
         max_retirements=retire_data["retirements"].max(),
         max_retirements_month=retire_data["retirements"][
             retire_data["retirements"] == retire_data["retirements"].max()
-        ].index[0].date(),
+        ]
+        .index[0]
+        .date(),
     )
 
     return render_template(
@@ -239,7 +246,123 @@ def plot_retirements():
         description=description,
     )
 
+@blueprint.route("pilot_plot", methods=["GET", "POST"])
+def build_pilot_plot():
+    form = BuildPilotPlotForm()
 
-@blueprint.route("pilot_details/<int:id>")
-def pilot_seniority_details(id):
-    pass
+    if form.validate_on_submit():
+        return redirect(
+            url_for(
+                ".pilot_plot",
+                emp_id=int(form.employee_id.data)
+            )
+        )
+
+    return render_template(
+        "seniority/build_pilot_plot.html",
+        form=form,
+    )
+
+@blueprint.route("pilot_plot/<emp_id>")
+def pilot_plot(emp_id: str):
+
+    from bokeh.plotting import Figure, figure, ColumnDataSource
+    from bokeh.resources import CDN
+    from bokeh.models import HoverTool, Range1d, LinearAxis, Legend
+    from bokeh.embed import components
+
+    repo = get_repo(current_app)
+
+    response = GetCurrentSeniorityCsv(repo).execute(
+        uc.requests.SeniortyFilterRequest(all=True)
+    )
+
+    if not response:
+        return render_template("seniority/base_plot.html", errors=True)
+
+    else:
+        record: CsvRecord = response.value[-1]
+
+    df = make_df_from_record(record)
+
+    start = pd.Timestamp.today().normalize()
+    end = df[STANDARD_FIELDS.RETIRE_DATE].max()
+    dates: pd.DatetimeIndex = pd.date_range(start, end, freq="MS")
+
+    try:
+        data = stat.calculate_number_of_active_senior_pilots_for_dates(
+            df, dates, emp_id
+        )
+    except Exception as e:
+        current_app.logger.error(e)
+        flash(f"No info for {emp_id}", "danger")
+        return render_template("seniority/base_plot.html", errors=True)
+
+    fig = figure(
+        title=f"Career Seniority for {emp_id}", x_axis_type="datetime", plot_width=800
+    )
+
+    active_data = stat.make_pilots_remaining_series(df, dates)
+
+    source_data = pd.DataFrame(
+        data=dict(
+            date=dates,
+            seniority=data,
+            active=active_data,
+            pct=(1 - (pd.Series(data, index=dates) / active_data)) * 100,
+        )
+    )
+    source_data["seniority"] = source_data["seniority"] + 1
+
+    source = ColumnDataSource(source_data)
+
+    # CAREER LINE
+    line1 = fig.line("date", "seniority", source=source, line_width=2)
+
+    # ACTIVE PILOTS LINE
+    line2 = fig.line("date", "active", source=source, line_width=1, line_dash="dashed")
+
+    # PERCENTAGE SENIORITY LINE
+    line3 = fig.line(
+        "date",
+        "pct",
+        source=source,
+        y_range_name="percentage",
+        line_width=1,
+    )
+
+    # TOOLS
+    hovertool = HoverTool(
+        mode="vline",
+        tooltips=[
+            ("On Date", "@date{%F}"),
+            ("Seniority Number", "@seniority"),
+            ("Active", "@active"),
+            ("PCT", "@pct"),
+        ],
+        formatters={"date": "datetime"},
+    )
+
+    fig.extra_y_ranges = dict(percentage=Range1d(start=-5, end=105))
+
+    fig.add_layout(LinearAxis(y_range_name="percentage"), "right")
+
+    legend = Legend(
+        items=[
+            ("Percentage in Company", [line3]),
+            ("Seniority Number on Date", [line1]),
+            ("Remaining Active Pilots", [line2]),
+        ],
+        location="center",
+        click_policy="hide",
+    )
+
+    fig.add_tools(hovertool)
+    fig.add_layout(legend, "below")
+
+    div, script = components(fig)
+
+    # todo: wrap this up
+    return render_template(
+        "seniority/base_plot.html", resources=CDN.render(), script=script, div=div
+    )
