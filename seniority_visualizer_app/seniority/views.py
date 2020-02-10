@@ -155,7 +155,7 @@ def current_status():
 
 
 @blueprint.route("retirements")
-# @cache.cached(3600, query_string=True)
+@cache.cached(3600, query_string=True)
 def plot_retirements():
     """
     Retirements company wide plot
