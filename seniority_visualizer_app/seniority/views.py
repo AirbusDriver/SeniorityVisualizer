@@ -1,4 +1,5 @@
 from typing import List, Union
+import typing as t
 from pathlib import Path
 import uuid
 import io
@@ -15,7 +16,7 @@ from flask import (
     flash,
     jsonify,
     redirect,
-    url_for
+    url_for,
 )
 from flask_login import login_required, current_user
 
@@ -111,6 +112,25 @@ def get_pilot_records_for_employee_id(
     return [record for record in initial if record.standardized_employee_id == _id]
 
 
+def render_fig_plot_template(template_name, models, **context) -> str:
+    """
+    Return a rendered template that uses bokeh models in the 'seniority/base_plot.html'
+    parent template.
+
+    :param template_name: Child template to render
+    :param models: Bokeh figure to pass to `components` function
+    :param context: context to pass to templates
+    """
+    from bokeh.resources import CDN
+    from bokeh.embed import components
+
+    script, div = components(models)
+    base = render_template(
+        template_name, resources=CDN.render(), script=script, div=div, **context
+    )
+    return base
+
+
 @blueprint.route("status")
 @blueprint.route("/")
 def current_status():
@@ -135,14 +155,12 @@ def current_status():
 
 
 @blueprint.route("retirements")
-@cache.cached(3600, query_string=True)
+# @cache.cached(3600, query_string=True)
 def plot_retirements():
     """
-    Present the base plot template
+    Retirements company wide plot
     """
-    from bokeh.resources import CDN
     from bokeh.plotting import figure, ColumnDataSource, Figure
-    from bokeh.embed import components
     from bokeh.models import HoverTool, LinearAxis, Range1d
 
     ROLLING = int(request.args.get("rolling_periods", 6))
@@ -226,10 +244,9 @@ def plot_retirements():
 
     fig.add_tools(hov)
 
-    script, div = components(fig)
-
-    description = render_template(
-        "seniority/descriptions/retirements.html",
+    return render_fig_plot_template(
+        "seniority/retirements_plot.html",
+        fig,
         max_retirements=retire_data["retirements"].max(),
         max_retirements_month=retire_data["retirements"][
             retire_data["retirements"] == retire_data["retirements"].max()
@@ -238,33 +255,25 @@ def plot_retirements():
         .date(),
     )
 
-    return render_template(
-        "seniority/base_plot.html",
-        resources=CDN.render(),
-        script=script,
-        div=div,
-        description=description,
-    )
 
 @blueprint.route("pilot_plot", methods=["GET", "POST"])
 def build_pilot_plot():
+    """
+    Pilot Plot selection page
+    """
     form = BuildPilotPlotForm()
 
     if form.validate_on_submit():
-        return redirect(
-            url_for(
-                ".pilot_plot",
-                emp_id=int(form.employee_id.data)
-            )
-        )
+        return redirect(url_for(".pilot_plot", emp_id=int(form.employee_id.data)))
 
-    return render_template(
-        "seniority/build_pilot_plot.html",
-        form=form,
-    )
+    return render_template("seniority/build_pilot_plot.html", form=form)
+
 
 @blueprint.route("pilot_plot/<emp_id>")
 def pilot_plot(emp_id: str):
+    """
+    Plot for specific pilot
+    """
 
     from bokeh.plotting import Figure, figure, ColumnDataSource
     from bokeh.resources import CDN
@@ -299,7 +308,9 @@ def pilot_plot(emp_id: str):
         return render_template("seniority/base_plot.html", errors=True)
 
     fig = figure(
-        title=f"Career Seniority for {emp_id}", x_axis_type="datetime", plot_width=800
+        title=f"Career Seniority for {emp_id:0>5}",
+        x_axis_type="datetime",
+        plot_width=1000,
     )
 
     active_data = stat.make_pilots_remaining_series(df, dates)
@@ -324,11 +335,7 @@ def pilot_plot(emp_id: str):
 
     # PERCENTAGE SENIORITY LINE
     line3 = fig.line(
-        "date",
-        "pct",
-        source=source,
-        y_range_name="percentage",
-        line_width=1,
+        "date", "pct", source=source, y_range_name="percentage", line_width=1
     )
 
     # TOOLS
@@ -360,9 +367,6 @@ def pilot_plot(emp_id: str):
     fig.add_tools(hovertool)
     fig.add_layout(legend, "below")
 
-    div, script = components(fig)
-
-    # todo: wrap this up
-    return render_template(
-        "seniority/base_plot.html", resources=CDN.render(), script=script, div=div
+    return render_fig_plot_template(
+        "seniority/pilot_seniority_plot.html", fig, title=f"Plot for {emp_id:0>5}"
     )

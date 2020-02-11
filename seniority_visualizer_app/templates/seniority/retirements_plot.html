@@ -1,0 +1,12 @@
+{% extends "seniority/base_plot.html" %}
+
+{% block content %}
+    {{ super() }}
+    <div class="text" id="plot-description">
+        <h3>Key Details</h3>
+        <ul>
+            <li>Max retirements occur on: {{ max_retirements_month }}</li>
+            <li>Max retirements rate : {{ max_retirements }} / month</li>
+        </ul>
+    </div>
+{% endblock %}
