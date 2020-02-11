@@ -30,3 +30,16 @@ class TestPermissions:
         res: TestResponse = testapp.get(url_for("seniority.current_status"), expect_errors=True)
 
         assert res.status_code == 200
+
+@pytest.mark.usefixtures("confirmed_user", "app")
+class TestViews:
+    @pytest.mark.parametrize("endpoint,args", [
+        ("seniority.current_status", {}),
+        ("seniority.plot_retirements", {}),
+        ("seniority.pilot_plot", {"emp_id": 78629}),
+    ])
+    def test_status(self, endpoint, args, testapp):
+        """Test endpoints return 200 status"""
+        res: TestResponse = testapp.get(url_for(endpoint, **args))
+
+        assert res.status_code == 200

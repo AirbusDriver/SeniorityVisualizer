@@ -1,0 +1,9 @@
+{% extends "seniority/base_plot.html" %}
+{% from "seniority/_form_macros.html" import render_pilot_plot_form %}
+
+{% block content %}
+    {{ super() }}
+    <div id="pilot-plot-form">
+    {{ render_pilot_plot_form(form) }}
+    </div>
+{% endblock %}

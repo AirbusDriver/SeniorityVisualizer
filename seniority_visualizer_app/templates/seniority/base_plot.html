@@ -2,23 +2,23 @@
 
 {% block cdn_resources %}{{ resources | safe }}{% endblock %}
 
+{% block page_title %}
+    {% if title %}
+        {{ title }}
+    {% else %}
+        Seniority Plot
+    {% endif %}
+{% endblock %}
+
 {% block content %}
-
-    {% if not errors %}
-
     <div class="container justify-content-lg-center">
         <div class="bokeh-plot">
             {{ script | safe }}
             {{ div | safe }}
         </div>
-        {% if description %}
-            <div id="plot-description">
-                {{ description|safe }}
-            </div>
-        {% endif %}
+        <hr>
+        {% include "seniority/disclaimer.html" %}
+        <hr>
     </div>
-
-    {% endif %}
-
 {% endblock %}
 
