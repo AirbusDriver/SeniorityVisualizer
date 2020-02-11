@@ -269,16 +269,14 @@ def build_pilot_plot():
     return render_template("seniority/build_pilot_plot.html", form=form)
 
 
-@blueprint.route("pilot_plot/<emp_id>")
+@blueprint.route("pilot_plot/<emp_id>", methods=["GET", "POST"])
 def pilot_plot(emp_id: str):
     """
     Plot for specific pilot
     """
 
-    from bokeh.plotting import Figure, figure, ColumnDataSource
-    from bokeh.resources import CDN
+    from bokeh.plotting import figure, ColumnDataSource
     from bokeh.models import HoverTool, Range1d, LinearAxis, Legend
-    from bokeh.embed import components
 
     repo = get_repo(current_app)
 
@@ -291,6 +289,17 @@ def pilot_plot(emp_id: str):
 
     else:
         record: CsvRecord = response.value[-1]
+
+    form = BuildPilotPlotForm()
+
+    if form.validate_on_submit():
+        emp_id = form.employee_id.data
+        return redirect(
+            url_for(".pilot_plot", emp_id=emp_id)
+        )
+
+    else:
+        form.employee_id.data = emp_id.zfill(5)
 
     df = make_df_from_record(record)
 
@@ -368,5 +377,5 @@ def pilot_plot(emp_id: str):
     fig.add_layout(legend, "below")
 
     return render_fig_plot_template(
-        "seniority/pilot_seniority_plot.html", fig, title=f"Plot for {emp_id:0>5}"
+        "seniority/pilot_seniority_plot.html", fig, title=f"Plot for {emp_id:0>5}", form=form,
     )

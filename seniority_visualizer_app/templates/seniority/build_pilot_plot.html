@@ -1,16 +1,9 @@
 {% extends "layout.html" %}
 
+{% from "seniority/_form_macros.html" import render_pilot_plot_form %}
 
 {% block content %}
 
-    <form method="POST">
-        {{ form.csrf_token }}
-        <div class="form-group">
-            <div class="label" for="{{ form.employee_id.name }}">Employee ID</div>
-            {{ form.employee_id(class_="form-control") }}
-            <small class="form-text text-muted">Leading zeroes are okay.</small>
-        </div>
-        <button class="btn btn-primary" type="submit">Submit</button>
-    </form>
+    {{ render_pilot_plot_form(form) }}
 
 {% endblock %}
