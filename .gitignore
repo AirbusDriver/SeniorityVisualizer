@@ -243,3 +243,4 @@ dmypy.json
 .pyre/
 
 .idea/sonarlint
+.mailgun_env
