@@ -3,11 +3,29 @@
 from flask import current_app
 from flask_wtf import FlaskForm
 from sqlalchemy import func
-from wtforms import PasswordField, StringField, ValidationError
+from wtforms import PasswordField, StringField, ValidationError, SubmitField
 from wtforms.validators import DataRequired, Email, EqualTo, InputRequired, Length
 
 from .models import User
 from .validators import CompanyEmail
+
+
+class EmployeeValidationForm(FlaskForm):
+    company_email = StringField(
+        "Company Email", validators=[DataRequired(), CompanyEmail("Invalid company email")]
+    )
+    submit = SubmitField("Submit")
+
+    def validate(self):
+        if not super().validate():
+            return False
+
+        if User.get_by_email(
+            User.company_email, self.company_email.data, case_insensitive=True
+        ):
+            self.company_email.errors.append("Email already registered")
+            return False
+        return True
 
 
 class RegisterForm(FlaskForm):

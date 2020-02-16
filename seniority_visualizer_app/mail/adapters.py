@@ -1,4 +1,6 @@
 import typing as t
+import logging
+import pprint
 
 import requests
 from werkzeug import MultiDict
@@ -7,6 +9,8 @@ if t.TYPE_CHECKING:
     from flask import Flask
 
 from .entities import IMailService, MailClientResponse
+
+logger = logging.getLogger(__name__)
 
 
 class MailGunService(IMailService):
@@ -36,6 +40,7 @@ class MailGunService(IMailService):
             api_key=app.config["MAILGUN_API_KEY"],
             domain=app.config["MAILGUN_DOMAIN"],
             test_mode=test_mode,
+            default_sender=f"B6 Seniority Mail <admin@{app.config['MAILGUN_DOMAIN']}>"
         )
 
     def send_mail(
@@ -87,3 +92,33 @@ class MailGunService(IMailService):
             data["o:testmode"] = "yes"
         res = self.client.post(url=url, data=data, auth=("api", self.api_key), **kwargs)
         return res
+
+
+class NullService(IMailService):
+
+    def __getattr__(self, item):
+        logger.debug(f"{type(self).__name__}.{item}")
+
+    def send_mail(self, to: t.Union[str, t.Iterable[str]], subject: str, from_: t.Optional[str] = None,
+                  text: t.Optional[str] = None, html: t.Optional[str] = None,
+                  data: t.Optional[MultiDict] = None) -> MailClientResponse:
+        call_data = {
+            "to": to,
+            "subject": subject,
+            "from_": from_,
+            "text": text,
+            "html": html,
+            "data": data,
+        }
+
+        msg = f"'send_mail' called with data: \n{pprint.pformat(call_data)}"
+
+        logger.info(msg)
+
+        response = MailClientResponse(
+            type_=MailClientResponse.ResponseTypes.SUCCESS,
+            message=msg,
+            response=data
+        )
+
+        return response

@@ -1,5 +1,3 @@
-import re
-
 from seniority_visualizer_app.shared.request_object import InvalidRequestObject, ValidRequestObject, UseCaseRequest
 from seniority_visualizer_app.user.validators import CompanyEmail
 
@@ -13,9 +11,9 @@ def validate_company_email(email: str):
 
 class SendCompanyConfirmationEmailRequest(UseCaseRequest):
 
-    def __init__(self, company_email: str, timeout: int = 3600):
+    def __init__(self, company_email: str, verification_link: str):
         self.company_email = company_email
-        self.timeout = timeout
+        self.verification_link = verification_link
 
     @classmethod
     def from_dict(cls, dict_: dict) -> UseCaseRequest:
@@ -26,21 +24,26 @@ class SendCompanyConfirmationEmailRequest(UseCaseRequest):
             invalid.add_error("company_email", str(e))
             email = str(dict_.get("company_email"))
 
-        timeout = dict_.get("timeout")
-
-        if not timeout or int(timeout) < 60:
-            invalid.add_error("timeout", "timeout required to be an int greater than 60")
-
-        timeout = int(timeout)
+        try:
+            pre_checked_link = dict_.get("verification_link", "")
+            cls.validate_verification_link(pre_checked_link)
+        except Exception as e:
+            invalid.add_error("verification_link", str(e))
+        finally:
+            link = pre_checked_link
 
         if invalid.has_errors():
             return invalid
 
         return cls(
             company_email=email,
-            timeout=timeout
+            verification_link=link
         )
 
     @classmethod
     def validate_company_email(cls, email: str) -> str:
         return validate_company_email(email)
+
+    @classmethod
+    def validate_verification_link(cls, link: str) -> str:
+        return link

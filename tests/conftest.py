@@ -58,7 +58,6 @@ def patch_mail_id():
 def app(patch_mail_id):
     """Create application for the tests."""
     _app = create_app("tests.settings")
-    _app.logger.setLevel(logging.CRITICAL)
     ctx = _app.test_request_context()
     ctx.push()
 

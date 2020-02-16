@@ -5,7 +5,7 @@ from seniority_visualizer_app.mail.use_cases import usecase_requests
 
 def test_send_company_confirmation_email_request_from_dict():
     BAD_EMAIL = "bad@gmail.com"
-    dict_ = {"company_email": BAD_EMAIL, "timeout": 59}
+    dict_ = {"company_email": BAD_EMAIL}
 
     res = usecase_requests.SendCompanyConfirmationEmailRequest.from_dict(
         dict_
@@ -13,7 +13,6 @@ def test_send_company_confirmation_email_request_from_dict():
 
     exp_param_errors = [
         ("company_email", f"invalid email: {BAD_EMAIL}"),
-        ("timeout", "timeout required to be an int greater than 60")
     ]
 
     assert not res
