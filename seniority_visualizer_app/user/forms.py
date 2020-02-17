@@ -62,7 +62,9 @@ class RegisterForm(FlaskForm):
             data = self.employee_number.data.zfill(5)
             current_app.logger.debug(f"employee number provided -> {data}")
             if not data.isdigit():
-                raise ValidationError("Employee Number only, do not include character prefixes")
+                raise ValidationError(
+                    "Employee Number only, do not include character prefixes"
+                )
         return True
 
 

@@ -33,7 +33,9 @@ class LoginForm(FlaskForm):
             self.password.errors.append("Invalid password")
             return False
 
-        if not self.user.active and not self.user.role.has_permission(Permissions.ADMIN):
+        if not self.user.active and not self.user.role.has_permission(
+            Permissions.ADMIN
+        ):
             self.username.errors.append("User not activated")
             return False
         return True

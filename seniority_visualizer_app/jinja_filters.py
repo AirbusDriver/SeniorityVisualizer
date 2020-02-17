@@ -9,8 +9,6 @@ def format_datetime(value: t.Union[dt.date], format="iso") -> str:
     if format == "iso":
         return value.isoformat()
     else:
-        selected = {
-            "date": "%m %b, %Y"
-        }.get(format)
+        selected = {"date": "%m %b, %Y"}.get(format)
 
         return value.strftime(selected) if selected is not None else value.isoformat()

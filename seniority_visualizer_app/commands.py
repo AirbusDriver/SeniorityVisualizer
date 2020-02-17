@@ -66,4 +66,3 @@ def lint(fix_imports, check):
         execute_tool("Fixing import order", "isort", *isort_args)
     execute_tool("Formatting style", "black", *black_args)
     execute_tool("Checking code style", "flake8")
-

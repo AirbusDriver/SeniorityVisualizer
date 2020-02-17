@@ -85,10 +85,7 @@ class EmployeeID:
         """Apply case setting to id string"""
         out = _id
 
-        cases = {
-            "upper": str.upper,
-            "lower": str.lower,
-        }
+        cases = {"upper": str.upper, "lower": str.lower}
         case_callable = cases.get(self.CASE)
 
         if case_callable:

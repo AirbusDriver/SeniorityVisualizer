@@ -40,6 +40,7 @@ class CsvRepoInMemory(ICsvRepo):
     def get_all(self) -> t.List[CsvRecord]:
         def key(rec: CsvRecord):
             return rec.published
+
         return sorted(self._records.copy(), key=key)
 
     def save(self, record: CsvRecord, overwrite=False) -> uuid.UUID:

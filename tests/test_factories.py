@@ -41,4 +41,3 @@ def test_csv_record_factory():
     data = list(reader)
 
     assert len(data) == len(records[0].text.split("\n")) - 1  # -1 for header
-

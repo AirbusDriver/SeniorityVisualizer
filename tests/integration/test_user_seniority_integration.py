@@ -55,4 +55,3 @@ class TestSeniorityListRecordSeniorityListIntegration:
         ) == set(
             p.literal_seniority_number for p in sen_list_record.pilots
         )
-

@@ -215,7 +215,10 @@ def calculate_number_of_active_senior_pilots_for_dates(
 
     def senior_filter(sen_num: int, ref_date: str):
         def _senior(ds: pd.Series):
-            return ds[(ds[F.SENIORITY_NUMBER] < sen_num) & (df[F.RETIRE_DATE] > ref_date)]
+            return ds[
+                (ds[F.SENIORITY_NUMBER] < sen_num) & (df[F.RETIRE_DATE] > ref_date)
+            ]
+
         return _senior
 
     F = FIELDS
@@ -231,7 +234,9 @@ def calculate_number_of_active_senior_pilots_for_dates(
 
     data = pd.DataFrame(index=date_series)
 
-    data["seniority_on_date"] = data.index.map(lambda d: senior_filter(target_sen_num, d)(df).shape[0])
+    data["seniority_on_date"] = data.index.map(
+        lambda d: senior_filter(target_sen_num, d)(df).shape[0]
+    )
 
     data[data.index > target_record[F.RETIRE_DATE]] = float("nan")
 

@@ -117,6 +117,7 @@ def require_fields(*fields):
         ...
         KeyError: "function 'some_func' missing fields: ['some_other_key']"
     """
+
     def decorator(func):
         @wraps(func)
         def wrapper(df: pd.DataFrame, *args, **kwargs):
@@ -124,12 +125,14 @@ def require_fields(*fields):
             require = set(fields)
             missing = require.difference(keys)
             if missing:
-                raise KeyError(f"function '{func.__name__}' missing fields: {list(missing)}")
+                raise KeyError(
+                    f"function '{func.__name__}' missing fields: {list(missing)}"
+                )
             return func(df, *args, **kwargs)
+
         return wrapper
+
     return decorator
-
-
 
 
 STANDARD_FIELDS = SeniorityDfFields()

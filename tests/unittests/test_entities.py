@@ -164,4 +164,3 @@ class TestSeniorityList:
         )
 
         assert sen_list._get_pilot_index(target, sen_list.pilot_data) == 50 == sen_list._get_pilot_index(from_dict, sen_list.pilot_data)
-

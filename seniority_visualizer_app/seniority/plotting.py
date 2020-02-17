@@ -36,5 +36,3 @@ def generate_date_indices(
             yield date_idx
             break
         break
-
-

@@ -20,7 +20,7 @@ def permissions_required(*permissions: Permissions):
             total_perms = sum(permissions)
             user_has_perms = current_user.role.has_permission(total_perms)
             if not (
-                    user_has_perms or current_user.role.has_permission(Permissions.ADMIN)
+                user_has_perms or current_user.role.has_permission(Permissions.ADMIN)
             ):
                 abort(401)
             return func(*args, **kwargs)
