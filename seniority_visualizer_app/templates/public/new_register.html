@@ -1,0 +1,48 @@
+{% extends "layout.html" %}
+
+{% block content %}
+
+    <h1>Registration for {{ email }}</h1>
+
+    <p>
+        You may now enter your registration details. While you can not change the company email
+        that you provided, you can provide a personal email that will be used for administrative tasks
+        and communications.
+    </p>
+
+    {% with form = register_form %}
+        <form id="verified-registration-form" method="POST">
+            {{ form.csrf_token }}
+            <div class="form-group">
+                <label for="company_email">Company Email</label>
+                <input name="company_email" class="form-control" type="text" readonly value="{{ email }}">
+            </div>
+            <div class="form-group">
+                {{ form.username.label }}
+                {{ form.username(class_="form-control") }}
+            </div>
+            <div class="form-group">
+                {{ form.password.label }}
+                {{ form.password(class_="form-control") }}
+            </div>
+            <div class="form-group">
+                {{ form.confirm_password.label }}
+                {{ form.confirm_password(class_="form-control") }}
+            </div>
+            <div class="form-group">
+                {{ form.personal_email.label }}
+                {{ form.personal_email(class_="form-control") }}
+                <small class="text-muted">
+                    Can be used for administrative tasks in lieu of your company email.
+                </small>
+
+            </div>
+            <div class="form-check">
+                {{ form.use_personal_email(class_="form-check-input") }}
+                {{ form.use_personal_email.label(class_="form-check-label") }}
+            </div>
+            {{ form.submit(class="btn btn-primary mt-2") }}
+        </form>
+    {% endwith %}
+
+{% endblock %}

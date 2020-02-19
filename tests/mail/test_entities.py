@@ -1,6 +1,8 @@
 import pytest
 from unittest import mock
 
+from itsdangerous.exc import BadTimeSignature
+
 from seniority_visualizer_app.mail.entities import (
     MailClientResponse,
     Mailer,
@@ -76,6 +78,37 @@ class TestTokenizer:
         token = email_tokenizer.create_email_token(self.EMAIL)
 
         assert isinstance(token, str)
+
+    def test_parse_email_token_success(self, email_tokenizer):
+        token = email_tokenizer.create_email_token(self.EMAIL)
+
+        res = email_tokenizer.parse_email_token(token)
+
+        assert res.successful
+        assert res.payload == self.EMAIL
+
+    def test_parse_email_token_bad_token(self, email_tokenizer):
+        token = email_tokenizer.create_email_token(self.EMAIL) + "additional"
+
+        res = email_tokenizer.parse_email_token(token)
+
+        assert res.successful is False
+        assert res.reason == email_tokenizer.reasons.BAD_TOKEN
+        assert "Signature" in res.message
+
+    def test_parse_email_token_timeout(self, email_tokenizer):
+        mock_serializer = mock.MagicMock()
+        mock_serializer.loads.side_effect = BadTimeSignature("Bad time")
+
+        email_tokenizer.set_serializer(mock_serializer)
+
+        token = email_tokenizer.create_email_token(self.EMAIL)
+
+        res = email_tokenizer.parse_email_token(token)
+
+        assert res.successful is False
+        assert res.message == "Bad time"
+        assert res.reason == email_tokenizer.reasons.TIMEOUT
 
     def test_verify_email_token(self, email_tokenizer):
         token = email_tokenizer.create_email_token(self.EMAIL)
