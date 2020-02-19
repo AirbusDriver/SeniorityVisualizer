@@ -85,7 +85,10 @@ class TestTokenizer:
         )
 
         assert res == EmailTokenVerificationResponse(
-            successful=True, reason=email_tokenizer.reasons.SUCCESS, message="SUCCESS"
+            successful=True,
+            reason=email_tokenizer.reasons.SUCCESS,
+            message="SUCCESS",
+            payload=self.EMAIL,
         )
 
     def test_verify_email_token_case_sensitive(self, email_tokenizer):
@@ -99,6 +102,7 @@ class TestTokenizer:
             successful=True,
             reason=EmailTokenVerificationReason.SUCCESS,
             message="SUCCESS",
+            payload=self.EMAIL,
         )
 
     def test_verify_email_token_timeout(self, email_tokenizer):

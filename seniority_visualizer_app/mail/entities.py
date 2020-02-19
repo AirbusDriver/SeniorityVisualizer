@@ -139,6 +139,7 @@ class EmailTokenVerificationResponse(NamedTuple):
     successful: bool
     reason: EmailTokenVerificationReason
     message: str
+    payload: str
 
 
 class EmailTokenizer:
@@ -189,12 +190,14 @@ class EmailTokenizer:
                 successful=False,
                 reason=EmailTokenVerificationReason.TIMEOUT,
                 message=str(e),
+                payload=str(e),
             )
         except BadSignature as e:
             return EmailTokenVerificationResponse(
                 successful=False,
                 reason=EmailTokenVerificationReason.BAD_TOKEN,
                 message=str(e),
+                payload=str(e),
             )
 
         if case_insensitive:
@@ -203,5 +206,8 @@ class EmailTokenizer:
 
         if res == email:
             return EmailTokenVerificationResponse(
-                True, reason=EmailTokenVerificationReason.SUCCESS, message="SUCCESS"
+                True,
+                reason=EmailTokenVerificationReason.SUCCESS,
+                message="SUCCESS",
+                payload=res,
             )
