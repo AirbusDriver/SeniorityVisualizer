@@ -93,13 +93,23 @@ def register_commands(app):
 
 def configure_logger(app):
     """Configure loggers."""
+    root_logger = logging.getLogger()
     app_logger: logging.Logger = app.logger
-    email_logger: logging.Logger = app_logger.getChild("email")
 
     handler = logging.StreamHandler(sys.stdout)
 
-    if not app.logger.handlers:
-        app.logger.addHandler(handler)
+    level = "DEBUG" if app.config["DEBUG"] else "INFO"
+
+    handler.setLevel(getattr(logging, level))
+
+    del app_logger.handlers[:]
+    del root_logger.handlers[:]
+
+    app_logger.addHandler(handler)
+    root_logger.addHandler(handler)
+
+    for handler in app_logger.handlers:
+        handler.setLevel(level)
 
 
 def register_request_hooks(app):

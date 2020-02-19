@@ -1,0 +1,30 @@
+{% extends "layout.html" %}
+
+{% block content %}
+
+    <h3>How to Register</h3>
+
+    <p>
+        In order to register with the site, I'll first need to verify that you have active access to your company
+        email. This is the only way that I can verify that you indeed work here and have access to the data the site
+        uses already. When you provide a valid company email and prove that you aren't a bot, an email will be sent
+        containing a link to register. That link will only be valid for a limited time. Once you verify via the email,
+        you will be given the opportunity to provide an alternative email for general communication and administrative
+        stuff like password resets. Eventually, a mailing list will be created that you can opt into that will let
+        you know when the latest seniority data has been pushed into the site.
+    </p>
+
+    <div class="form">
+    {% with form=validation_form %}
+        <form id="company-verification-form" class="form form-register" method="POST" role="form">
+            {{ form.csrf_token }}
+            <div class="form-group">
+                {{ form.company_email.label }}
+                {{ form.company_email(placeholder="Company Email", class_="form-control") }}
+            </div>
+            <button class="btn btn-primary" type="submit">Request Access</button>
+        </form>
+    {% endwith %}
+    </div>
+
+{% endblock %}

@@ -38,6 +38,7 @@ tablib = "*"
 bokeh = "*"
 mypy = "*"
 psycopg2-binary = "*"
+requests = "*"
 
 [dev-packages]
 # Testing

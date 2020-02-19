@@ -24,5 +24,12 @@ MAIL_SERVER = "localhost"
 MAIL_PORT = "123"
 MAIL_USE_SSL = True
 
+MAILGUN_API_KEY = "apikey"
+MAILGUN_DOMAIN = "MyDomain@Domain.com"
+MAILGUN_DEFAULT_SENDER = "Default Sender <default@example.com>"
+
+MAIL_TOKEN_TIMEOUT = 3600
+
+
 CURRENT_SENIORITY_LIST_CSV = TESTS_DIR / "sample.csv"
 CURRENT_SENIORITY_LIST_PUBLISHED = dt.datetime(2020, 1, 1)
