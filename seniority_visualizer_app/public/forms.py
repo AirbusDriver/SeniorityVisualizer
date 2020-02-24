@@ -47,7 +47,7 @@ class PostVerificationRegistrationForm(FlaskForm):
     confirm_password = PasswordField(
         "Confirm Password", [EqualTo("password"), DataRequired()]
     )
-    personal_email = PasswordField(
+    personal_email = StringField(
         "Personal Email", description="Can be used for things like password resets"
     )
     use_personal_email = BooleanField("Use Personal Email")

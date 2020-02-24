@@ -208,6 +208,8 @@ class TestUserSubmitsVerifiedRegistration:
         assert retrieved.role.name == "ConfirmedUser"
         assert retrieved.personal_email is None
         assert retrieved.use_personal_email is False
+        assert retrieved.is_active
+        assert retrieved.active
 
     def test_new_user_registers_with_personal_email(self, testapp):
         res: TestResponse = testapp.get(self.make_link()).follow()
@@ -232,3 +234,5 @@ class TestUserSubmitsVerifiedRegistration:
         assert retrieved.role.name == "ConfirmedUser"
         assert retrieved.personal_email == "personal_email@example.com"
         assert retrieved.use_personal_email is True
+        assert retrieved.is_active
+        assert retrieved.active

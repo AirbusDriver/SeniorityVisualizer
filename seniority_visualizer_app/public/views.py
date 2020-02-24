@@ -199,6 +199,7 @@ def verified_registration(token):
         if register_form.use_personal_email.data:
             user.use_personal_email = True
 
+        user.active = True
         user.save()
         logger.info(f"NEW USER -> {user.username} saved")
 
@@ -207,6 +208,9 @@ def verified_registration(token):
         flash(f"Welcome {user.username}! You may now log in!", category="success")
 
         return redirect(url_for("public.home"))
+
+    if request.method == "POST":
+        flash_errors(register_form)
 
     return render_template(
         "public/new_register.html", register_form=register_form, email=email

@@ -33,14 +33,22 @@
                 {{ form.personal_email.label }}
                 {{ form.personal_email(class_="form-control") }}
                 <small class="text-muted">
-                    Can be used for administrative tasks in lieu of your company email.
+                    Optional. Can be used for administrative tasks in lieu of your company email.
                 </small>
 
             </div>
-            <div class="form-check">
-                {{ form.use_personal_email(class_="form-check-input") }}
-                {{ form.use_personal_email.label(class_="form-check-label") }}
+            <div class="form-row">
+                <div class="form-check">
+                    {{ form.use_personal_email(class_="form-check-input") }}
+                    {{ form.use_personal_email.label(class_="form-check-label") }}
+                </div>
             </div>
+            <div class="form-row ml-3">
+                    <small class="text-muted">
+                        Prefer personal email over company email for all communications.
+                    </small>
+                </div>
+
             {{ form.submit(class="btn btn-primary mt-2") }}
         </form>
     {% endwith %}
