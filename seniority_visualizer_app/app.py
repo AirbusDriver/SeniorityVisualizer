@@ -93,11 +93,9 @@ def register_commands(app):
 
 def configure_logger(app):
     """Configure loggers."""
-    root_logger = logging.getLogger()
     app_logger: logging.Logger = app.logger
 
     loggers = [
-        root_logger,
         app_logger,
     ]
 
