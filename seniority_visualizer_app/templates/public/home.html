@@ -26,6 +26,24 @@
                 The information provided here is calculated under the assumption that each pilot will remain active on
                 the seniority list until reaching their retirement date (age 65 rule).
             </p>
-        </div><!-- /.row -->
+        </div>
+
+        <div class="row">
+            {% if not current_user.is_active %}
+                <a href="{{ url_for('public.request_company_verification') }}">
+                    <button class="btn btn-primary">
+                        Get Started Here
+                    </button>
+                </a>
+            {% else %}
+                <a href="{{ url_for('seniority.current_status') }}">
+                    <button class="btn btn-primary">
+                        Show Me the Numbers
+                    </button>
+                </a>
+            {% endif %}
+        </div>
+
+
     </div>
 {% endblock %}
