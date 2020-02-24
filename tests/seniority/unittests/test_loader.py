@@ -3,7 +3,7 @@ from pathlib import Path
 
 import pytest
 
-from ...utils import SAMPLE_CSV
+from tests.utils import SAMPLE_CSV
 
 from seniority_visualizer_app.seniority.loader import SeniorityListLoader
 

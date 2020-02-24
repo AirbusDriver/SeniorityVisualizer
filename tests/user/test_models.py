@@ -7,7 +7,7 @@ import pytest
 from seniority_visualizer_app.user.models import User
 from seniority_visualizer_app.user.role import Role
 
-from .factories import UserFactory
+from tests.factories import UserFactory
 
 
 @pytest.mark.usefixtures("clean_db")
