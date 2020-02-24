@@ -131,3 +131,32 @@ should cache all your assets forever by including the following line
 in your ``settings.py``::
 
     SEND_FILE_MAX_AGE_DEFAULT = 31556926  # one year
+
+
+
+Configuration
+-------------
+
+In its current deployment implementation, a private branch is used that contains
+the datasource that is loaded into memory. That should be set in the ``settings.py`` file.
+The ``tests/settings.py`` module has an example of this. This wil change in the future
+as a repository layer is implemented.
+
+
+Updating the Datasource
+-----------------------
+
+The new datasource should be added to the local branch by conforming the format
+to the current field map. This is important because all of the data functionality
+will be limited to using the ``STANDARD_FIELDS`` object.
+
+::
+
+    fields = {
+            "seniority_number": STANDARD_FIELDS.SENIORITY_NUMBER,
+            "cmid": STANDARD_FIELDS.EMPLOYEE_ID,
+            "base": STANDARD_FIELDS.BASE,
+            "seat": STANDARD_FIELDS.SEAT,
+            "retire_date": STANDARD_FIELDS.RETIRE_DATE,
+            "fleet": STANDARD_FIELDS.FLEET,
+        }
