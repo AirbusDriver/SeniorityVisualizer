@@ -38,9 +38,10 @@ class User(UserMixin, SurrogatePK, Model):
     __tablename__ = "users"
     username = Column(db.String(80), unique=True, nullable=False)
     company_email = Column(db.String(80), unique=True, nullable=False)
-    personal_email = Column(db.String(80), unique=True, nullable=False)
+    personal_email = Column(db.String(80), nullable=True)
     company_email_confirmed = Column(db.Boolean(), default=False)
     personal_email_confirmed = Column(db.Boolean(), default=False)
+    use_personal_email = Column(db.Boolean(), default=False)
     #: The hashed password
     password = Column(db.LargeBinary(128), nullable=True)
     created_at = Column(db.DateTime, nullable=False, default=dt.datetime.utcnow)
@@ -77,8 +78,10 @@ class User(UserMixin, SurrogatePK, Model):
         else:
             self.password = None
 
-        if current_app.config.get("FLASK_ADMIN") and (
-            current_app.config.get("FLASK_ADMIN") == personal_email.lower()
+        if (
+            current_app.config.get("FLASK_ADMIN")
+            and personal_email
+            and (current_app.config.get("FLASK_ADMIN") == personal_email.lower())
         ):
             self.role = Role.query.filter(Role.name.ilike("admin")).first()
         else:

@@ -19,7 +19,7 @@ class MailGunService(IMailService):
     client = requests
 
     def __init__(
-            self, api_key: str, domain: str, test_mode=False, default_sender: str = None
+        self, api_key: str, domain: str, test_mode=False, default_sender: str = None
     ):
         self.api_key = api_key
         self.test_mode = test_mode
@@ -40,17 +40,17 @@ class MailGunService(IMailService):
             api_key=app.config["MAILGUN_API_KEY"],
             domain=app.config["MAILGUN_DOMAIN"],
             test_mode=test_mode,
-            default_sender=f"B6 Seniority Mail <admin@{app.config['MAILGUN_DOMAIN']}>"
+            default_sender=f"B6 Seniority Mail <admin@{app.config['MAILGUN_DOMAIN']}>",
         )
 
     def send_mail(
-            self,
-            to: t.Union[str, t.Iterable[str]],
-            subject: str,
-            from_: t.Optional[str] = None,
-            text: t.Optional[str] = None,
-            html: t.Optional[str] = None,
-            data: MultiDict = None,
+        self,
+        to: t.Union[str, t.Iterable[str]],
+        subject: str,
+        from_: t.Optional[str] = None,
+        text: t.Optional[str] = None,
+        html: t.Optional[str] = None,
+        data: MultiDict = None,
     ) -> MailClientResponse:
         d: MultiDict = MultiDict() if data is None else data
 
@@ -81,7 +81,7 @@ class MailGunService(IMailService):
             return MailClientResponse(
                 type_=MailClientResponse.ResponseTypes.MAIL_SERVICE_FAIL,
                 message=str(e),
-                response={"value": res}
+                response={"value": res},
             )
 
         return MailClientResponse.from_success(res_data)
@@ -95,13 +95,15 @@ class MailGunService(IMailService):
 
 
 class NullService(IMailService):
-
-    def __getattr__(self, item):
-        logger.debug(f"{type(self).__name__}.{item}")
-
-    def send_mail(self, to: t.Union[str, t.Iterable[str]], subject: str, from_: t.Optional[str] = None,
-                  text: t.Optional[str] = None, html: t.Optional[str] = None,
-                  data: t.Optional[MultiDict] = None) -> MailClientResponse:
+    def send_mail(
+        self,
+        to: t.Union[str, t.Iterable[str]],
+        subject: str,
+        from_: t.Optional[str] = None,
+        text: t.Optional[str] = None,
+        html: t.Optional[str] = None,
+        data: t.Optional[MultiDict] = None,
+    ) -> MailClientResponse:
         call_data = {
             "to": to,
             "subject": subject,
@@ -116,9 +118,7 @@ class NullService(IMailService):
         logger.info(msg)
 
         response = MailClientResponse(
-            type_=MailClientResponse.ResponseTypes.SUCCESS,
-            message=msg,
-            response=data
+            type_=MailClientResponse.ResponseTypes.SUCCESS, message=msg, response=data
         )
 
         return response

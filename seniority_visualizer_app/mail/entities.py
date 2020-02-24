@@ -139,6 +139,7 @@ class EmailTokenVerificationResponse(NamedTuple):
     successful: bool
     reason: EmailTokenVerificationReason
     message: str
+    payload: str
 
 
 class EmailTokenizer:
@@ -166,12 +167,42 @@ class EmailTokenizer:
     def serializer(self, value):
         raise AttributeError("serializer is readonly")
 
+    def set_serializer(self, serializer):
+        self._serializer = serializer
+
     def _make_serializer(self, key, timout):
         return TimedJSONWebSignatureSerializer(key, timout)
 
     def create_email_token(self, email) -> str:
         """Return a string containing a web-safe payload from the serializer instance."""
         return self.serializer.dumps(email).decode()
+
+    def parse_email_token(self, token: str) -> EmailTokenVerificationResponse:
+        """
+        Return an EmailTokenVerificationResponse with the payload of the token
+        """
+        try:
+            res = self.serializer.loads(token)
+            return EmailTokenVerificationResponse(
+                successful=True,
+                reason=EmailTokenVerificationReason.SUCCESS,
+                message=str(res),
+                payload=str(res),
+            )
+        except BadTimeSignature as e:
+            return EmailTokenVerificationResponse(
+                successful=False,
+                reason=EmailTokenVerificationReason.TIMEOUT,
+                message=str(e),
+                payload=str(e),
+            )
+        except BadSignature as e:
+            return EmailTokenVerificationResponse(
+                successful=False,
+                reason=EmailTokenVerificationReason.BAD_TOKEN,
+                message=str(e),
+                payload=str(e),
+            )
 
     def verify_email_token(
         self, token: str, email: str, case_insensitive: bool = True
@@ -182,26 +213,27 @@ class EmailTokenizer:
         of the email token and why it may be invalid.
         """
 
-        try:
-            res = self.serializer.loads(token)
-        except BadTimeSignature as e:
-            return EmailTokenVerificationResponse(
-                successful=False,
-                reason=EmailTokenVerificationReason.TIMEOUT,
-                message=str(e),
-            )
-        except BadSignature as e:
-            return EmailTokenVerificationResponse(
-                successful=False,
-                reason=EmailTokenVerificationReason.BAD_TOKEN,
-                message=str(e),
-            )
+        response = self.parse_email_token(token)
+        if not response.successful:
+            return response
+        else:
+            payload_email = response.payload
 
         if case_insensitive:
-            res = res.lower()
+            payload_email = payload_email.lower()
             email = email.lower()
 
-        if res == email:
+        if payload_email == email:
             return EmailTokenVerificationResponse(
-                True, reason=EmailTokenVerificationReason.SUCCESS, message="SUCCESS"
+                True,
+                reason=EmailTokenVerificationReason.SUCCESS,
+                message="SUCCESS",
+                payload=payload_email,
+            )
+        else:
+            return EmailTokenVerificationResponse(
+                False,
+                reason=EmailTokenVerificationReason.BAD_MATCH,
+                message=f"{payload_email} does not match {email}",
+                payload="No match",
             )
