@@ -93,23 +93,22 @@ def register_commands(app):
 
 def configure_logger(app):
     """Configure loggers."""
-    root_logger = logging.getLogger()
     app_logger: logging.Logger = app.logger
+
+    loggers = [
+        app_logger,
+    ]
 
     handler = logging.StreamHandler(sys.stdout)
 
-    level = "DEBUG" if app.config["DEBUG"] else "INFO"
+    level = "DEBUG" if app.config.get("FLASK_DEBUG") else "INFO"
 
     handler.setLevel(getattr(logging, level))
 
-    del app_logger.handlers[:]
-    del root_logger.handlers[:]
-
-    app_logger.addHandler(handler)
-    root_logger.addHandler(handler)
-
-    for handler in app_logger.handlers:
-        handler.setLevel(level)
+    for logger in loggers:
+        del logger.handlers[:]
+        logger.addHandler(handler)
+        logger.setLevel(level)
 
 
 def register_request_hooks(app):

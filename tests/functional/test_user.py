@@ -30,6 +30,7 @@ class TestUserPasswordManagement:
 
         assert logged_in_user.check_password(new_pass)
 
+    @pytest.mark.xfail(reason="mailer being refactored")
     def test_user_can_request_password_reset(self, testapp, user):
         """
         User can reset password via link and log back in after clicking link.
