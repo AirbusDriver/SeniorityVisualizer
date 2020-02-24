@@ -5,6 +5,21 @@ Seniority Visualizer App
 A seniority visualizer for airline pilots
 
 
+What's This?
+------------
+Some time ago, my company had a pretty simplistic webapp that would give you a good idea about the seniority
+a pilot could expect to achieve by their retirement date. This webapp allows for a greater introspection into
+the career trajectory of a company's pilot group. It isn't currently meant to be deployable for anyone other
+than myself, with the data I point it at. However, a fork will be created when I make a stable app that will
+allow for anyone to deploy with simply a configuration file and a .csv file with the current seniority data
+of their company.
+
+
+Where all da README at?
+------------------------
+It's coming, chill.
+
+
 Quickstart
 ----------
 
