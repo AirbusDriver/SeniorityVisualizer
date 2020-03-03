@@ -17,7 +17,5 @@ def production_config(app):
 
 def test_production_logger_level(production_config):
     """Test the logger is set to INFO in production"""
-    logger = logging.getLogger()
 
-    assert logger.level == logging.INFO
     assert production_config.logger.level == logging.INFO
