@@ -7,7 +7,14 @@
             {{ form.employee_id(class_="form-control") }}
             <small class="form-text text-muted">Leading zeroes are okay.</small>
         </div>
-        <button class="btn btn-primary" type="submit">Submit</button>
+        <div class="form-check">
+            {{ form.pin_pilot_group(class_="form-check-input") }}
+            <label class="form-check-label" for="{{ form.pin_pilot_group.name }}">Pin Pilot Group Size</label>
+            <small class="form-text text-muted">
+                Make the number of remaining pilots static (gives better relative seniority estimate)
+            </small>
+        </div>
+        <button class="btn btn-primary mt-2" type="submit">Submit</button>
     </form>
 
 {% endmacro %}
