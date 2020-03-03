@@ -4,8 +4,8 @@ from pathlib import Path
 import uuid
 import io
 
-
 import pandas as pd
+import numpy as np
 from flask import (
     Blueprint,
     make_response,
@@ -101,7 +101,7 @@ def make_df_from_record(record: CsvRecord) -> pd.DataFrame:
 
 
 def get_pilot_records_for_employee_id(
-    employee_id: Union[str, int, EmployeeID]
+        employee_id: Union[str, int, EmployeeID]
 ) -> List[PilotRecord]:
     """Return a list of pilot records from an employee id"""
     _id = standardize_employee_id(employee_id)
@@ -250,9 +250,9 @@ def plot_retirements():
         max_retirements=retire_data["retirements"].max(),
         max_retirements_month=retire_data["retirements"][
             retire_data["retirements"] == retire_data["retirements"].max()
-        ]
-        .index[0]
-        .date(),
+            ]
+            .index[0]
+            .date(),
     )
 
 
@@ -264,7 +264,7 @@ def build_pilot_plot():
     form = BuildPilotPlotForm()
 
     if form.validate_on_submit():
-        return redirect(url_for(".pilot_plot", emp_id=int(form.employee_id.data)))
+        return redirect(url_for(".pilot_plot", emp_id=int(form.employee_id.data), pin=form.pin_pilot_group.data))
 
     return render_template("seniority/build_pilot_plot.html", form=form)
 
@@ -273,10 +273,25 @@ def build_pilot_plot():
 def pilot_plot(emp_id: str):
     """
     Plot for specific pilot
+
+    `pin=True` to pin the size of the pilot group
     """
 
     from bokeh.plotting import figure, ColumnDataSource
     from bokeh.models import HoverTool, Range1d, LinearAxis, Legend
+
+    form = BuildPilotPlotForm()
+
+    if form.validate_on_submit():
+        emp_id = form.employee_id.data
+        pin = form.pin_pilot_group.data
+        return redirect(url_for(".pilot_plot", emp_id=emp_id, pin=pin))
+
+    else:
+        form.employee_id.data = emp_id.zfill(5)
+
+    # pin the total number of active pilots, replace retirements
+    pin_retirements = request.args.get("pin", "").upper() in ["TRUE", "YES"]
 
     repo = get_repo(current_app)
 
@@ -289,15 +304,6 @@ def pilot_plot(emp_id: str):
 
     else:
         record: CsvRecord = response.value[-1]
-
-    form = BuildPilotPlotForm()
-
-    if form.validate_on_submit():
-        emp_id = form.employee_id.data
-        return redirect(url_for(".pilot_plot", emp_id=emp_id))
-
-    else:
-        form.employee_id.data = emp_id.zfill(5)
 
     df = make_df_from_record(record)
 
@@ -322,12 +328,24 @@ def pilot_plot(emp_id: str):
 
     active_data = stat.make_pilots_remaining_series(df, dates)
 
+    if not pin_retirements:
+        pct_data = (1 - (pd.Series(data, index=dates) / active_data)) * 100
+    else:
+        active_data = np.ones(len(active_data.index)) * len(df)
+        # +1 for 0 being the number 1 in seniority
+        pct_data = (1 - (pd.Series(data, index=dates) / len(df))) * 100
+        flash(
+            f"The 'PCT' and 'Active' lines are adjusted for one hire per retirement, "
+            f"negating the math effect of the shrinking pilot group. "
+            f"The remaining information is unchanged.",
+            "warning")
+
     source_data = pd.DataFrame(
         data=dict(
             date=dates,
             seniority=data,
             active=active_data,
-            pct=(1 - (pd.Series(data, index=dates) / active_data)) * 100,
+            pct=pct_data,
         )
     )
     source_data["seniority"] = source_data["seniority"] + 1
